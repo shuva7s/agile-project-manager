@@ -18,9 +18,8 @@ const UserSchema = new Schema({
   photo: { type: String, required: true },
   firstName: { type: String, default: "" },
   lastName: { type: String, default: "" },
+  projects: [{ type: Types.ObjectId, ref: "Project", default: [] }],
   createdAt: { type: Date, default: Date.now },
-
-  projects: [{ type: Types.ObjectId, ref: "Project" }],
 });
 
 const User = models?.User || model("User", UserSchema);
