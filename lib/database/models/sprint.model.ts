@@ -8,14 +8,17 @@ const SprintSchema = new Schema({
   hasStarted: { type: Boolean, default: false },
   hasEnded: { type: Boolean, default: false },
 
-  requirements: [{ type: Types.ObjectId, ref: "Task" }],
-  designing: [{ type: Types.ObjectId, ref: "Task" }],
-  development: [{ type: Types.ObjectId, ref: "Task" }],
-  testing: [{ type: Types.ObjectId, ref: "Task" }],
-  deployment: [{ type: Types.ObjectId, ref: "Task" }],
-  completed: [{ type: Types.ObjectId, ref: "Task" }],
+  requirements: [{ type: Types.ObjectId, ref: "Task", default: [] }],
+  designing: [{ type: Types.ObjectId, ref: "Task", default: [] }],
+  development: [{ type: Types.ObjectId, ref: "Task", default: [] }],
+  testing: [{ type: Types.ObjectId, ref: "Task", default: [] }],
+  deployment: [{ type: Types.ObjectId, ref: "Task", default: [] }],
+
+  submissions: [{ type: Types.ObjectId, ref: "Task", default: [] }],
+
+  completed: [{ type: Types.ObjectId, ref: "Task", default: [] }],
 });
 
-const Sprint = models?.Project || model("Sprint", SprintSchema);
+const Sprint = models?.Sprint || model("Sprint", SprintSchema);
 
 export default Sprint;

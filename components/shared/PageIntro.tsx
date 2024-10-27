@@ -8,7 +8,7 @@ const PageIntro = ({
   description: string;
 }) => {
   return (
-    <div>
+    <div className="mt-4">
       <div className="flex items-center">
         <div className="inline-flex text-primary mr-2 rounded-md">{icon}</div>
         <h1 className="page_heading">{heading}</h1>
