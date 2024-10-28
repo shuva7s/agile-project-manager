@@ -35,14 +35,14 @@ const SideBarClient = ({ isMobile = false }: { isMobile?: boolean }) => {
     return (
       <ul className="flex flex-col gap-1">
         {navLinks.map((link) => (
-          <li key={link.name} className="w-full">
+          <li key={link.href} className="w-full">
             <SheetClose
               asChild
               className={`w-full flex flex-row rounded-2xl px-4 py-6 hover:bg-primary text-muted-foreground ${
                 (link.href === "/" && pathName === "/") ||
                 (link.href !== "/" && pathName.includes(link.href))
-                  ? "bg-primary py-7 text-white"
-                  : "bg-transparent py-7 hover:text-white"
+                  ? "bg-primary py-6 text-white"
+                  : "bg-transparent py-6 hover:text-white"
               }`}
             >
               <Link href={link.href} className="flex gap-2">

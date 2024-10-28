@@ -6,6 +6,7 @@ import Sprint from "../database/models/sprint.model";
 import User from "../database/models/user.model";
 import { connectToDatabase } from "../database/mongoose";
 import { userInfo } from "./utility.actions";
+import { Types } from "mongoose";
 
 export async function createProject({
   projectName,
@@ -78,7 +79,7 @@ export async function createProject({
     await user.save();
 
     revalidatePath("/");
-    
+
     return {
       success: true,
       message: "Project created successfully",
@@ -128,6 +129,7 @@ export async function getProjects(getHosted = true) {
     const projects = (
       getHosted ? user.hosted_projects : user.joined_projects
     ).map((project: any) => ({
+      _id: project._id,
       name: project.name,
       description: project.description,
       memberCount: project.members?.length || 0,
@@ -138,6 +140,84 @@ export async function getProjects(getHosted = true) {
       success: true,
       projects,
     };
+  } catch (error: any) {
+    return {
+      success: false,
+      message: error.message,
+    };
+  }
+}
+
+export async function checkUserAccessAndReturnProjectData(projectId: string) {
+  try {
+    if (!Types.ObjectId.isValid(projectId)) {
+      return {
+        success: false,
+        message: "Project not found",
+      };
+    }
+
+    const { userName, userId, userMail } = await userInfo();
+
+    if (!userName || !userId || !userMail) {
+      return {
+        success: false,
+        message: "User credentials not found",
+      };
+    }
+
+    const user = await User.findOne({
+      clerkId: userId,
+      email: userMail,
+      username: userName,
+    });
+
+    if (!user) {
+      return {
+        success: false,
+        message: "User not found",
+      };
+    }
+
+    const project = await Project.findById(
+      projectId,
+      "name description members joinRequests _id createdAt"
+    );
+
+    if (!project) {
+      return {
+        success: false,
+        message: "Project not found",
+      };
+    }
+
+    const member = project.members.find((member: any) =>
+      member._id.equals(user._id)
+    );
+    const isMember = Boolean(member);
+    const isAdmin = isMember && member.role === "admin";
+
+    if (isMember) {
+      const projectData = {
+        _id: project._id,
+        name: project.name,
+        description: project.description,
+        memberCount: project.members.length,
+        joinRequestCount: project.joinRequests.length,
+      };
+
+      return {
+        success: true,
+        project: projectData,
+        isAdmin,
+        isMember,
+      };
+    } else {
+      return {
+        success: false,
+        message: "You are not authorized to access this project",
+      };
+    }
   } catch (error: any) {
     return {
       success: false,

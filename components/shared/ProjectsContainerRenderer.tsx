@@ -20,14 +20,25 @@ async function ProjectsContainer({ getHosted = true }) {
           {projects.map((project: any) => (
             <Card key={project._id}>
               <CardHeader>
-                <CardTitle className="text-foreground/80">{project.name}</CardTitle>
+                <CardTitle className="text-foreground/80">
+                  {project.name}
+                </CardTitle>
                 <CardDescription>{project.description}</CardDescription>
               </CardHeader>
-              <CardContent className="min-h-40 flex justify-center items-center text-muted-foreground">
-                <p>Card Content</p>
+              <CardContent>
+                <Link
+                  href={`/project/${project._id}`}
+                  className="min-h-40 flex justify-center items-center text-muted-foreground"
+                >
+                  <p>Card Content</p>
+                </Link>
               </CardContent>
               <CardFooter className="flex justify-between items-center text-muted-foreground pb-4">
-                <Button asChild variant="ghost" className="pl-0 hover:pl-4 transition-all">
+                <Button
+                  asChild
+                  variant="ghost"
+                  className="pl-0 hover:pl-4 transition-all"
+                >
                   <Link href={""}>
                     <span className="text-primary">{project.memberCount} </span>
                     <span>
@@ -35,19 +46,24 @@ async function ProjectsContainer({ getHosted = true }) {
                     </span>
                   </Link>
                 </Button>
-
-                <Button asChild variant="ghost" className="pr-0 hover:pr-4 transition-all">
-                  <Link href={""}>
-                    <span className="text-primary">
-                      {project.joinRequestCount}{" "}
-                    </span>
-                    <span>
-                      {project.joinRequestCount <= 1
-                        ? "Join request"
-                        : "Join requests"}
-                    </span>
-                  </Link>
-                </Button>
+                {getHosted && (
+                  <Button
+                    asChild
+                    variant="ghost"
+                    className="pr-0 hover:pr-4 transition-all"
+                  >
+                    <Link href={""}>
+                      <span className="text-primary">
+                        {project.joinRequestCount}{" "}
+                      </span>
+                      <span>
+                        {project.joinRequestCount <= 1
+                          ? "Join request"
+                          : "Join requests"}
+                      </span>
+                    </Link>
+                  </Button>
+                )}
               </CardFooter>
             </Card>
             // <div key={project._id}>
@@ -59,11 +75,11 @@ async function ProjectsContainer({ getHosted = true }) {
         </section>
       );
     } else {
-      return <p>No projects to show</p>;
+      return <p className="text-muted-foreground mt-4">No projects to show</p>;
     }
   } catch (error: any) {
     return (
-      <div className="text-red-500 bg-destructive/50 p-6 border border-destructive rounded-2xl">
+      <div className="text-red-500 bg-destructive/50 p-6 border border-destructive rounded-2xl mt-4">
         {error.message}
       </div>
     );
