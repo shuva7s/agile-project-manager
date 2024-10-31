@@ -148,6 +148,84 @@ export async function getProjects(getHosted = true) {
   }
 }
 
+// export async function checkUserAccessAndReturnProjectData(projectId: string) {
+//   try {
+//     if (!Types.ObjectId.isValid(projectId)) {
+//       return {
+//         success: false,
+//         message: "Project not found",
+//       };
+//     }
+
+//     const { userName, userId, userMail } = await userInfo();
+
+//     if (!userName || !userId || !userMail) {
+//       return {
+//         success: false,
+//         message: "User credentials not found",
+//       };
+//     }
+
+//     const user = await User.findOne({
+//       clerkId: userId,
+//       email: userMail,
+//       username: userName,
+//     });
+
+//     if (!user) {
+//       return {
+//         success: false,
+//         message: "User not found",
+//       };
+//     }
+
+//     const project = await Project.findById(
+//       projectId,
+//       "name description members joinRequests _id createdAt"
+//     );
+
+//     if (!project) {
+//       return {
+//         success: false,
+//         message: "Project not found",
+//       };
+//     }
+
+//     const member = project.members.find((member: any) =>
+//       member._id.equals(user._id)
+//     );
+//     const isMember = Boolean(member);
+//     const isAdmin = isMember && member.role === "admin";
+
+//     if (isMember) {
+//       const projectData = {
+//         _id: project._id,
+//         name: project.name,
+//         description: project.description,
+//         memberCount: project.members.length,
+//         joinRequestCount: project.joinRequests.length,
+//       };
+
+//       return {
+//         success: true,
+//         project: projectData,
+//         isAdmin,
+//         isMember,
+//       };
+//     } else {
+//       return {
+//         success: false,
+//         message: "You are not authorized to access this project",
+//       };
+//     }
+//   } catch (error: any) {
+//     return {
+//       success: false,
+//       message: error.message,
+//     };
+//   }
+// }
+
 export async function checkUserAccessAndReturnProjectData(projectId: string) {
   try {
     if (!Types.ObjectId.isValid(projectId)) {
@@ -197,8 +275,13 @@ export async function checkUserAccessAndReturnProjectData(projectId: string) {
     const isMember = Boolean(member);
     const isAdmin = isMember && member.role === "admin";
 
+    const hasRequestedJoin = project.joinRequests.some((req: any) =>
+      req.equals(user._id)
+    );
+    const canSendJoinReq = !isMember && !hasRequestedJoin;
+
     if (isMember) {
-      const projectData = {
+      let projectData = {
         _id: project._id,
         name: project.name,
         description: project.description,
@@ -211,13 +294,84 @@ export async function checkUserAccessAndReturnProjectData(projectId: string) {
         project: projectData,
         isAdmin,
         isMember,
+        canSendJoinReq,
       };
     } else {
+      let projectData = {
+        _id: project._id,
+        name: project.name,
+        description: project.description,
+      };
       return {
-        success: false,
-        message: "You are not authorized to access this project",
+        success: true,
+        project: projectData,
+        canSendJoinReq,
       };
     }
+  } catch (error: any) {
+    return {
+      success: false,
+      message: error.message,
+    };
+  }
+}
+
+export async function addJoinRequest(projectId: string) {
+  try {
+    if (!Types.ObjectId.isValid(projectId)) {
+      return {
+        success: false,
+        message: "Project not found",
+      };
+    }
+
+    const { userName, userId, userMail } = await userInfo();
+
+    if (!userName || !userId || !userMail) {
+      return {
+        success: false,
+        message: "User credentials not found",
+      };
+    }
+
+    await connectToDatabase();
+
+    const user = await User.findOne({
+      clerkId: userId,
+      email: userMail,
+      username: userName,
+    });
+
+    if (!user) {
+      return {
+        success: false,
+        message: "User not found",
+      };
+    }
+
+    const project = await Project.findById(projectId);
+
+    if (!project) {
+      return {
+        success: false,
+        message: "Project not found",
+      };
+    }
+//before pushing join request check if the user has already requested to join the project
+
+    if (project.joinRequests.includes(user._id)) {
+      return {
+        success: false,
+        message: "You have already requested to join this project",
+      };
+    }
+    project.joinRequests.push(user._id);
+    await project.save();
+    revalidatePath(`/project/${projectId}`);
+    return {
+      success: true,
+      message: "Join request sent successfully",
+    };
   } catch (error: any) {
     return {
       success: false,

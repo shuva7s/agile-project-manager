@@ -71,7 +71,16 @@ body {
     @apply bg-background text-foreground;
   }
   main {
-    @apply flex-1 w-full pl-4 pr-4 py-4 lg:pr-6;
+    @apply flex-1 w-full pl-4 pr-4 py-4;
+  }
+  
+  .scrollbar-hidden {
+    -ms-overflow-style: none; /* Internet Explorer and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+
+  .scrollbar-hidden::-webkit-scrollbar {
+    display: none; /* Safari and Chrome */
   }
 }
 

@@ -1,3 +1,4 @@
 export default function JoinRequestsPage() {
-  return <main>Join Requests</main>;
+  //check if the user is admin or member
+  return <section>Join Requests</section>;
 }

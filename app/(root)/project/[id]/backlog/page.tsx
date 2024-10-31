@@ -1,3 +1,4 @@
 export default function ProjectBacklogPage() {
-  return <main>Project Backlog</main>;
+  //check if the user is admin or member
+  return <section>Project Backlog</section>;
 }

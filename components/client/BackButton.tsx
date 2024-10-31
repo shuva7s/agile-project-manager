@@ -8,7 +8,7 @@ const BackButton = () => {
   return (
     <div
       onClick={() => router.back()}
-      className="fixed right-4 bottom-4 rounded-md bg-accent p-2"
+      className="fixed right-4 bottom-4 bg-background p-2.5 lg:p-3 rounded-2xl"
     >
       <Undo2 className="text-primary w-6 h-6" />
     </div>

@@ -10,10 +10,14 @@ import {
 import Link from "next/link";
 import { Aperture, SidebarIcon } from "lucide-react";
 import SideBarClient from "../client/SideBarClient";
-const MobileNabvar = () => {
+const MobileNabvar = ({ forPc = false }: { forPc?: boolean }) => {
   return (
     <Sheet>
-      <SheetTrigger className="fixed left-4 bottom-4 lg:hidden p-2 rounded-md bg-accent">
+      <SheetTrigger
+        className={`fixed left-4 bottom-4 ${
+          forPc ? "" : "lg:hidden"
+        }   p-2.5 lg:p-3 rounded-2xl bg-background`}
+      >
         <SidebarIcon className="text-primary" />
       </SheetTrigger>
       <SheetContent className="px-0 flex flex-col gap-4" side="left">
