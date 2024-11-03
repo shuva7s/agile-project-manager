@@ -6,8 +6,6 @@ import PageIntro from "@/components/shared/PageIntro";
 import ProjectOptions from "@/components/shared/ProjectOptions";
 import { checkUserAccessAndReturnProjectData } from "@/lib/actions/project.actions";
 import { SquareChartGantt } from "lucide-react";
-import { Suspense } from "react";
-import { createContext } from "react";
 async function ProjectPageRenderer({ projectId }: { projectId: string }) {
   try {
     const { success, message, project, isAdmin, isMember, canSendJoinReq } =

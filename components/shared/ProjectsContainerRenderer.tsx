@@ -39,7 +39,7 @@ async function ProjectsContainer({ getHosted = true }) {
                   variant="ghost"
                   className="pl-0 hover:pl-4 transition-all"
                 >
-                  <Link href={""}>
+                  <Link href={`/project/${project._id}/members`}>
                     <span className="text-primary">{project.memberCount} </span>
                     <span>
                       {project.memberCount === 1 ? "member" : "members"}
@@ -52,7 +52,7 @@ async function ProjectsContainer({ getHosted = true }) {
                     variant="ghost"
                     className="pr-0 hover:pr-4 transition-all"
                   >
-                    <Link href={""}>
+                    <Link href={`/project/${project._id}/join-requests`}>
                       <span className="text-primary">
                         {project.joinRequestCount}{" "}
                       </span>

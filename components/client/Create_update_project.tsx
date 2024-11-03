@@ -4,7 +4,6 @@ import {
   DialogClose,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -13,7 +12,6 @@ import { Button } from "../ui/button";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -25,7 +23,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Input } from "../ui/input";
 import { useState } from "react";
-import { create } from "domain";
 import { createProject } from "@/lib/actions/project.actions";
 import { useToast } from "@/hooks/use-toast";
 import { Loader } from "lucide-react";
@@ -58,7 +55,7 @@ const Create_update_project = ({
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    console.dir(values);
+    // console.dir(values);
     let res;
     setProcessing(true);
     try {
