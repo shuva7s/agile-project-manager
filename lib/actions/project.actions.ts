@@ -2,11 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 import Project from "../database/models/project.model";
-import Sprint from "../database/models/sprint.model";
 import User from "../database/models/user.model";
 import { connectToDatabase } from "../database/mongoose";
 import { userInfo } from "./utility.actions";
 import { Types } from "mongoose";
+import { Sprint } from "../database/models/sprint.model";
 
 export async function createProject({
   projectName,
@@ -183,7 +183,7 @@ export async function checkUserAccessAndReturnProjectData(projectId: string) {
 
     const project = await Project.findById(
       projectId,
-      "name description members joinRequests _id createdAt"
+      "name description members joinRequests _id backlog createdAt"
     );
 
     if (!project) {
@@ -211,6 +211,7 @@ export async function checkUserAccessAndReturnProjectData(projectId: string) {
         description: project.description,
         memberCount: project.members.length,
         joinRequestCount: project.joinRequests.length,
+        backlogTaskCount: project.backlog.length,
       };
 
       return {
@@ -577,74 +578,3 @@ export async function removeMemberFromProject(
   }
 }
 
-export async function checkUserIsAdminAndReturnBackLogTasks(projectId: string) {
-  try {
-    if (!Types.ObjectId.isValid(projectId)) {
-      return {
-        success: false,
-        message: "Project not found",
-      };
-    }
-
-    const { userName, userId, userMail } = await userInfo();
-
-    if (!userName || !userId || !userMail) {
-      return {
-        success: false,
-        message: "User credentials not found",
-      };
-    }
-
-    await connectToDatabase();
-
-    const user = await User.findOne({
-      clerkId: userId,
-      email: userMail,
-      username: userName,
-    });
-
-    if (!user) {
-      return {
-        success: false,
-        message: "User not found",
-      };
-    }
-    const project = await Project.findById(projectId)
-      .populate({
-        path: "members._id",
-        select: "clerkId email username photo firstName lastName",
-      })
-      .populate({
-        path: "backlog",
-        select: "name description priority status",
-      });
-
-    if (!project) {
-      return {
-        success: false,
-        message: "Project not found",
-      };
-    }
-
-    const isAdmin = project.members.some(
-      (member: any) => member._id.equals(user._id) && member.role === "admin"
-    );
-
-    if (isAdmin) {
-      return {
-        success: true,
-        backlogTasks: JSON.parse(JSON.stringify(project.backlog)),
-      };
-    } else {
-      return {
-        success: false,
-        message: "You don't have access to this page",
-      };
-    }
-  } catch (error: any) {
-    return {
-      success: false,
-      message: error.message || "An unexpected error occurred",
-    };
-  }
-}

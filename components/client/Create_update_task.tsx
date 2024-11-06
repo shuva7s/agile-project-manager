@@ -21,10 +21,8 @@ import {
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuLabel,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
@@ -35,7 +33,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Input } from "../ui/input";
 import { useState } from "react";
-import { createProject } from "@/lib/actions/project.actions";
 import { useToast } from "@/hooks/use-toast";
 import { Loader } from "lucide-react";
 import { createTask } from "@/lib/actions/task.actions";
@@ -119,7 +116,8 @@ const Create_update_task = ({
       <DialogTrigger asChild>
         <Button
           disabled={processing}
-          className="rounded-2xl w-full sm:w-fit py-6 sm:py-4 mt-4 sm:mt-0"
+          variant="secondary"
+          className="rounded-2xl w-full sm:w-fit py-6 sm:py-4 sm:mt-0"
         >
           {processing ? (
             <div className="flex items-center flex-row gap-2">

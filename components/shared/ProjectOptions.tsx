@@ -14,22 +14,27 @@ const ProjectOptions = ({
   isAdmin,
   memberCount,
   joinRequestCount,
+  backlogTaskCount,
 }: {
   projectId: string;
   isAdmin: boolean;
   memberCount: number;
   joinRequestCount?: number;
+  backlogTaskCount?: number;
 }) => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button className="mt-4 rounded-2xl focus:outline-none py-6 sm:py-4">Options</Button>
+        <Button className="mt-4 rounded-2xl focus:outline-none py-6 sm:py-4">
+          Options
+        </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="text-muted-foreground w-44">
         <DropdownMenuLabel className="text-primary px-4 py-3">
           Project options
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
+
         <DropdownMenuItem className="p-0">
           <Link
             className="w-full h-ful px-2 hover:px-4 py-3 rounded-lg hover:bg-accent hover:text-primary transition-all"
@@ -48,6 +53,15 @@ const ProjectOptions = ({
               >
                 Join requests{" "}
                 <span className="text-primary">{joinRequestCount}</span>
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem className="p-0">
+              <Link
+                className="w-full h-ful px-2 hover:px-4 py-3 rounded-lg hover:bg-accent hover:text-primary transition-all"
+                href={`/project/${projectId}/backlog`}
+              >
+                Backlog{" "}
+                <span className="text-primary">{backlogTaskCount}</span>
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem className="p-0">
