@@ -166,6 +166,8 @@ export async function checkUserAccessAndReturnProjectData(projectId: string) {
       };
     }
 
+    await connectToDatabase();
+
     const user = await User.findOne({
       clerkId: userId,
       email: userMail,
