@@ -1,14 +1,21 @@
-import { Schema } from "mongoose";
+import { model } from "mongoose";
+import { models, Schema } from "mongoose";
 
 const TaskSchema = new Schema({
   name: { type: String, required: true },
   description: { type: String, required: true },
-  priority: { type: Number, required: true },
+  priority: { type: Number, default: 1, min: 1, max: 10 },
 
-  assignedDesigners: [{ type: Schema.Types.ObjectId, ref: "User" }],
-  assignedDevelopers: [{ type: Schema.Types.ObjectId, ref: "User" }],
-  assignedTesters: [{ type: Schema.Types.ObjectId, ref: "User" }],
-  assignedDeployers: [{ type: Schema.Types.ObjectId, ref: "User" }],
+  assignedDesigners: [
+    { type: Schema.Types.ObjectId, ref: "User", default: [] },
+  ],
+  assignedDevelopers: [
+    { type: Schema.Types.ObjectId, ref: "User", default: [] },
+  ],
+  assignedTesters: [{ type: Schema.Types.ObjectId, ref: "User", default: [] }],
+  assignedDeployers: [
+    { type: Schema.Types.ObjectId, ref: "User", default: [] },
+  ],
 
   isDone: { type: Boolean, default: false },
   errorNote: { type: String, default: "" },
@@ -18,3 +25,7 @@ const TaskSchema = new Schema({
     default: "ns",
   },
 });
+
+const Task = models?.Task || model("Task", TaskSchema);
+
+export default Task;
