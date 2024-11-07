@@ -34,6 +34,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { Skeleton } from "../ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 const FormSchema = z.object({
   mems: z.array(z.string()).refine((value) => value.some((item) => item), {
@@ -44,9 +45,11 @@ const FormSchema = z.object({
 export function AssignMember({
   projectId,
   taskId,
+  className,
 }: {
   projectId: string;
   taskId: string;
+  className?: string;
 }) {
   const [members, setMembers] = useState<any>([]);
   const [membersLoading, setMembersLoading] = useState(false);
@@ -100,6 +103,7 @@ export function AssignMember({
     <Dialog>
       <DialogTrigger asChild>
         <Button
+          className={cn(className)}
           disabled={buttonDisabled}
           variant="outline"
           size="icon"
@@ -131,7 +135,7 @@ export function AssignMember({
                       <div className="flex w-full py-6 justify-center items-center">
                         <Loader2 className="w-10 h-10 text-purple-500 animate-spin" />
                       </div>
-                    ) : (
+                    ) : members.length > 0 ? (
                       members.map((member: any) => (
                         <FormItem
                           key={member._id}
@@ -174,6 +178,10 @@ export function AssignMember({
                           </FormLabel>
                         </FormItem>
                       ))
+                    ) : (
+                      <p className="text-center text-sm text-primary">
+                        All members are assigned to this task.
+                      </p>
                     )}
                     <FormMessage />
                   </FormItem>
