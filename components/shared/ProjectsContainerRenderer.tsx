@@ -16,9 +16,9 @@ async function ProjectsContainer({ getHosted = true }) {
     const { success, projects } = await getProjects(getHosted);
     if (success && projects && projects.length > 0) {
       return (
-        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+        <section className="columns-1 sm:columns-2 lg:columns-3 gap-4 space-y-4 mt-4">
           {projects.map((project: any) => (
-            <Card key={project._id}>
+            <Card key={project._id} className="break-inside-avoid">
               <CardHeader>
                 <CardTitle className="text-foreground/80">
                   {project.name}

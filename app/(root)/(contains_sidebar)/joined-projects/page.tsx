@@ -8,8 +8,8 @@ export default async function JoinedProjects() {
     <main className="min-h-[150vh]">
       <PageIntro
         icon={<Blocks className="w-8 h-8" />}
-        heading="Your projects"
-        description="Projects created by you"
+        heading="Joined projects"
+        description="Projects joined by you"
       />
       <div className="w-full flex justify-end">
         <Button

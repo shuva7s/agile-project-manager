@@ -20,9 +20,6 @@ const PushToDes = ({
   const [processing, setProcessing] = useState(false);
   const { toast } = useToast();
 
-  console.log("recived project id: ", projectId);
-  console.log("recived task id: ", taskId);
-
   async function handleMoveToDes() {
     setProcessing(true);
     try {

@@ -7,6 +7,7 @@ import User from "../database/models/user.model";
 import Project from "../database/models/project.model";
 import { revalidatePath } from "next/cache";
 import { Sprint, Task } from "../database/models/sprint.model";
+import { connect } from "http2";
 
 export async function checkUserIsAdminAndReturnBackLogTasks(projectId: string) {
   try {
@@ -231,6 +232,149 @@ export async function moveTaskToDesigning(projectId: string, taskId: string) {
     return {
       success: false,
       message: error.message || "Something went wrong",
+    };
+  }
+}
+
+export async function getMembersForTask(projectId: string, taskId: string) {
+  try {
+    await connectToDatabase();
+
+    // Find the project and populate the user data for each member
+    const project = await Project.findById(projectId).populate("members._id");
+    if (!project) {
+      return {
+        success: false,
+        message: "Project not found",
+      };
+    }
+
+    // Retrieve the task
+    const task = await Task.findById(taskId);
+    if (!task) {
+      return {
+        success: false,
+        message: "Task not found",
+      };
+    }
+
+    // Get all member IDs in the project
+    const allMemberIds = project.members.map((member: any) => member._id._id);
+
+    // Determine unassigned members based on task status
+    let unassignedMemberIds: Types.ObjectId[] = [];
+    if (task.status === "des") {
+      unassignedMemberIds = allMemberIds.filter(
+        (memberId: any) =>
+          !task.assignedDesigners.some((designerId: any) =>
+            designerId.equals(memberId)
+          )
+      );
+    } else if (task.status === "dev") {
+      unassignedMemberIds = allMemberIds.filter(
+        (memberId: any) =>
+          !task.assignedDevelopers.some((developerId: any) =>
+            developerId.equals(memberId)
+          )
+      );
+    } else if (task.status === "tes") {
+      unassignedMemberIds = allMemberIds.filter(
+        (memberId: any) =>
+          !task.assignedTesters.some((testerId: any) =>
+            testerId.equals(memberId)
+          )
+      );
+    } else if (task.status === "dep") {
+      unassignedMemberIds = allMemberIds.filter(
+        (memberId: any) =>
+          !task.assignedDeployers.some((deployerId: any) =>
+            deployerId.equals(memberId)
+          )
+      );
+    }
+
+    // Retrieve unassigned members' user data directly using populate
+    const populatedProject = await Project.findById(projectId).populate({
+      path: "members._id",
+      match: { _id: { $in: unassignedMemberIds } },
+      select: "_id firstName lastName username email photo", // Specify fields to select
+    });
+
+    // Extract user data from populated project members
+    const unassignedMembersData = populatedProject?.members
+      .filter((member: any) => member._id) // Filter out any null results
+      .map((member: any) => member._id); // Get the populated user data
+
+    return {
+      success: true,
+      members: JSON.parse(JSON.stringify(unassignedMembersData)),
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      message: error.message || "An error occurred",
+    };
+  }
+}
+
+export async function addMembersToTask(
+  projectId: string,
+  taskId: string,
+  memberIds: string[]
+) {
+  try {
+    await connectToDatabase();
+
+    const project = await Project.findById(projectId);
+    if (!project) {
+      return {
+        success: false,
+        message: "Project not found",
+      };
+    }
+
+    const task = await Task.findById(taskId);
+    if (!task) {
+      return {
+        success: false,
+        message: "Task not found",
+      };
+    }
+
+    let fieldToUpdate: string | null = null;
+    if (task.status === "des") {
+      fieldToUpdate = "assignedDesigners";
+    } else if (task.status === "dev") {
+      fieldToUpdate = "assignedDevelopers";
+    } else if (task.status === "tes") {
+      fieldToUpdate = "assignedTesters";
+    } else if (task.status === "dep") {
+      fieldToUpdate = "assignedDeployers";
+    }
+
+    if (!fieldToUpdate) {
+      return {
+        success: false,
+        message: "Invalid task status",
+      };
+    }
+
+    memberIds.forEach((memberId) => {
+      if (!task[fieldToUpdate].includes(memberId)) {
+        task[fieldToUpdate].push(memberId);
+      }
+    });
+
+    await task.save();
+
+    return {
+      success: true,
+      message: "Members added successfully to the task",
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      message: error.message || "An error occurred",
     };
   }
 }

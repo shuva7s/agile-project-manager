@@ -55,7 +55,6 @@ const Create_update_project = ({
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    // console.dir(values);
     let res;
     setProcessing(true);
     try {

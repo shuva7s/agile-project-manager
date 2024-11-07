@@ -23,8 +23,6 @@ async function BackLogAccessCheckAndRender({
   try {
     const { success, message, backlogTasks } =
       await checkUserIsAdminAndReturnBackLogTasks(projectId);
-    console.log(projectId);
-    console.dir(backlogTasks);
     if (success) {
       return (
         <section>
@@ -68,7 +66,7 @@ async function BackLogAccessCheckAndRender({
                 </Card>
               ))
             ) : (
-              <p>No join requests</p>
+              <p>No tasks to show</p>
             )}
           </div>
         </section>

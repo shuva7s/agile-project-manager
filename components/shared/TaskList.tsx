@@ -8,13 +8,16 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import Weitage from "./Weitage";
+import { AssignMember } from "../client/AssignMember";
 
 const TaskList = ({
   isAdmin = false,
+  projectId,
   tasks,
   type,
 }: {
   isAdmin?: boolean;
+  projectId: string;
   tasks: any[];
   type: "designing" | "development" | "testing" | "deployment" | "done";
 }) => {
@@ -29,7 +32,7 @@ const TaskList = ({
                 <CardDescription>{task.description}</CardDescription>
               </CardHeader>
               <CardFooter className="flex justify-between gap-2">
-                <div className="w-10 h-10 rounded-full bg-primary/20"/>
+                <AssignMember projectId={projectId} taskId={task._id} />
                 <div className="flex items-center gap-1.5 justify-center">
                   <Weitage weightage={task.priority} />
                   {task.priority}

@@ -34,6 +34,7 @@ async function CheckUserIsAdminOrMemberAndRender({
               </AccordionTrigger>
               <TaskList
                 isAdmin={isAdmin}
+                projectId={projectId}
                 tasks={currentSprintData.designing}
                 type="designing"
               />
@@ -44,6 +45,7 @@ async function CheckUserIsAdminOrMemberAndRender({
               </AccordionTrigger>
               <TaskList
                 isAdmin={isAdmin}
+                projectId={projectId}
                 tasks={currentSprintData.development}
                 type="development"
               />
@@ -54,6 +56,7 @@ async function CheckUserIsAdminOrMemberAndRender({
               </AccordionTrigger>
               <TaskList
                 isAdmin={isAdmin}
+                projectId={projectId}
                 tasks={currentSprintData.testing}
                 type="testing"
               />
@@ -64,6 +67,7 @@ async function CheckUserIsAdminOrMemberAndRender({
               </AccordionTrigger>
               <TaskList
                 isAdmin={isAdmin}
+                projectId={projectId}
                 tasks={currentSprintData.deployment}
                 type="deployment"
               />
@@ -74,6 +78,7 @@ async function CheckUserIsAdminOrMemberAndRender({
               </AccordionTrigger>
               <TaskList
                 isAdmin={isAdmin}
+                projectId={projectId}
                 tasks={currentSprintData.completed}
                 type="done"
               />

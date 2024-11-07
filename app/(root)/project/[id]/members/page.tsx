@@ -19,8 +19,6 @@ async function MembersRenderer({ projectId }: { projectId: string }) {
     const { success, message, members, isAdmin } =
       await checkUserIsAdminAndReturnMembers(projectId);
 
-    console.dir(members);
-
     if (success) {
       return (
         <section className="mt-8">

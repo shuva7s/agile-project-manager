@@ -70,8 +70,6 @@ export async function checkUserIsAdminAndReturnCurrentSprintData(
       })
       .select("-__v -submissions")
       .exec();
-
-    console.dir(JSON.parse(JSON.stringify(currentSprint)));
     if (!currentSprint) {
       return {
         success: false,
