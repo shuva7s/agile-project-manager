@@ -23,7 +23,7 @@ const SprintsTab = ({ sprints }: { sprints?: any[] }) => {
       <DropdownMenuTrigger asChild>
         <Button
           variant="secondary"
-          className="focus:outline-none py-6 sm:py-4 w-full sm:w-fit"
+          className="focus:outline-none py-6 sm:py-4"
         >
           {position}
           <ChevronDown

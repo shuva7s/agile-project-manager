@@ -69,7 +69,6 @@ export function AssignMember({
       const { success, members } = await getMembersForTask(projectId, taskId);
       if (success) setMembers(members);
     } catch (error) {
-      console.error("Failed to load members:", error);
     } finally {
       setMembersLoading(false);
     }
@@ -133,7 +132,7 @@ export function AssignMember({
                   <FormItem>
                     {membersLoading ? (
                       <div className="flex w-full py-6 justify-center items-center">
-                        <Loader2 className="w-10 h-10 text-purple-500 animate-spin" />
+                        <Loader2 className="w-10 h-10 text-primary animate-spin" />
                       </div>
                     ) : members.length > 0 ? (
                       members.map((member: any) => (

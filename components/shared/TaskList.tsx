@@ -22,7 +22,6 @@ const TaskList = ({
   tasks: any[];
   type: "designing" | "development" | "testing" | "deployment" | "done";
 }) => {
-  console.dir(tasks);
   return (
     <AccordionContent className="flex flex-col gap-2">
       {tasks.length > 0 ? (

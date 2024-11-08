@@ -8,6 +8,8 @@ export interface IUser {
   photo: string;
   firstName: string;
   lastName: string;
+  // hosted_projects: String[];
+  // joined_projects: String[];
   projects: [
     {
       _id: string;

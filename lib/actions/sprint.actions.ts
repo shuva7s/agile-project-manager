@@ -178,7 +178,6 @@ export async function checkUserIsAdminAndReturnCurrentSprintData(
         message: "Current sprint data not found",
       };
     }
-    console.dir(JSON.parse(JSON.stringify(currentSprint)));
     return {
       success: true,
       isAdmin,

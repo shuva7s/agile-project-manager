@@ -99,7 +99,7 @@ export async function updateProject({}) {}
 
 export async function deleteProject({}) {}
 
-export async function getProjects(getHosted = true) {
+export async function getProjects(getHosted = false) {
   try {
     await connectToDatabase();
 
@@ -119,7 +119,6 @@ export async function getProjects(getHosted = true) {
     }).populate({
       path: "projects._id",
       select: "name description members joinRequests createdAt",
-      options: { sort: { createdAt: -1 } },
     });
 
     if (!user) {
@@ -129,17 +128,17 @@ export async function getProjects(getHosted = true) {
       };
     }
 
-    // Filter projects based on admin/member status
     const projects = user.projects
       .filter((project: any) => {
         const projectData = project._id;
         if (!projectData) return false;
 
-        // Determine if user is admin/member based on getHosted
+        // Find the user's role in each project's members array
         const userRole = projectData.members.find((member: any) =>
           member._id.equals(user._id)
         )?.role;
 
+        // Filter based on role (admin if getHosted is true, otherwise non-admin)
         return getHosted ? userRole === "admin" : userRole !== "admin";
       })
       .map((project: any) => ({
@@ -545,8 +544,8 @@ export async function removeMemberFromProject(
 
     await connectToDatabase();
 
+    // Find the project
     const project = await Project.findById(projectId);
-
     if (!project) {
       return {
         success: false,
@@ -554,10 +553,8 @@ export async function removeMemberFromProject(
       };
     }
 
-    const user = await User.findOne({
-      _id: memberIdToRemove,
-    });
-
+    // Find the user
+    const user = await User.findById(memberIdToRemove);
     if (!user) {
       return {
         success: false,
@@ -565,20 +562,23 @@ export async function removeMemberFromProject(
       };
     }
 
+    // Remove the member from the project's members array
     project.members = project.members.filter(
       (member: any) => !member._id.equals(memberIdToRemove)
     );
 
-    user.joined_projects = user.joined_projects.filter(
-      (projectId: any) => !projectId.equals(projectId)
+    // Remove the project and tasks from the user's `projects` array
+    user.projects = user.projects.filter(
+      (projectEntry: any) => !projectEntry._id.equals(projectId)
     );
 
-    // TODO: Remove member from tasks
-    // Later we will have to remove the member from tasks aswell
+    // TODO: Remove member from tasks in the project if assigned
+    // You might need additional logic here to remove the user from any tasks they were assigned to within the project
 
     await project.save();
     await user.save();
 
+    // Revalidate paths to reflect updates
     revalidatePath(`/`);
     revalidatePath(`/project/${projectId}`);
     revalidatePath(`/project/${projectId}/members`);
