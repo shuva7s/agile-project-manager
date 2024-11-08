@@ -8,8 +8,12 @@ export interface IUser {
   photo: string;
   firstName: string;
   lastName: string;
-  hosted_projects: String[];
-  joined_projects: String[];
+  projects: [
+    {
+      _id: string;
+      tasks: string[];
+    }
+  ];
   createdAt: Date;
 }
 
@@ -20,8 +24,13 @@ const UserSchema = new Schema({
   photo: { type: String, required: true },
   firstName: { type: String, default: "" },
   lastName: { type: String, default: "" },
-  hosted_projects: [{ type: Types.ObjectId, ref: "Project", default: [] }],
-  joined_projects: [{ type: Types.ObjectId, ref: "Project", default: [] }],
+
+  projects: [
+    {
+      _id: { type: Types.ObjectId, ref: "Project", required: true },
+      tasks: [{ type: Types.ObjectId, ref: "Task", default: [] }],
+    },
+  ],
   createdAt: { type: Date, default: Date.now },
 });
 

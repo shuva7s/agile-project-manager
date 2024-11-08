@@ -20,7 +20,7 @@ export default async function JoinedProjects() {
         </Button>
       </div>
 
-      <ProjectsContainerRenderer getHosted={false} />
+      {/* <ProjectsContainerRenderer getHosted={false} /> */}
     </main>
   );
 }

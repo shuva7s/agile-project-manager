@@ -20,7 +20,7 @@ export default async function Homepage() {
             <Create_update_project type="create" />
           </div>
 
-          <ProjectsContainerRenderer getHosted={true} />
+          {/* <ProjectsContainerRenderer getHosted={true} /> */}
         </main>
       </SignedIn>
       <SignedOut>

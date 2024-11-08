@@ -72,7 +72,10 @@ export async function createProject({
       role: "admin",
     });
 
-    user.hosted_projects.push(newProject._id);
+    user.projects.push({
+      _id: newProject._id,
+      tasks: [],
+    });
 
     await newSprint.save();
     await newProject.save();
@@ -114,7 +117,7 @@ export async function getProjects(getHosted = true) {
       email: userMail,
       username: userName,
     }).populate({
-      path: getHosted ? "hosted_projects" : "joined_projects",
+      path: "projects._id",
       select: "name description members joinRequests createdAt",
       options: { sort: { createdAt: -1 } },
     });
@@ -126,15 +129,26 @@ export async function getProjects(getHosted = true) {
       };
     }
 
-    const projects = (
-      getHosted ? user.hosted_projects : user.joined_projects
-    ).map((project: any) => ({
-      _id: project._id,
-      name: project.name,
-      description: project.description,
-      memberCount: project.members?.length || 0,
-      joinRequestCount: project.joinRequests?.length || 0,
-    }));
+    // Filter projects based on admin/member status
+    const projects = user.projects
+      .filter((project: any) => {
+        const projectData = project._id;
+        if (!projectData) return false;
+
+        // Determine if user is admin/member based on getHosted
+        const userRole = projectData.members.find((member: any) =>
+          member._id.equals(user._id)
+        )?.role;
+
+        return getHosted ? userRole === "admin" : userRole !== "admin";
+      })
+      .map((project: any) => ({
+        _id: project._id._id,
+        name: project._id.name,
+        description: project._id.description,
+        memberCount: project._id.members?.length || 0,
+        joinRequestCount: project._id.joinRequests?.length || 0,
+      }));
 
     return {
       success: true,
@@ -413,7 +427,10 @@ export async function acceptOrRejectJoinRequest(
         _id: requestUser._id,
         role: "member",
       });
-      requestUser.joined_projects.push(project._id);
+      requestUser.projects.push({
+        _id: project._id,
+        tasks: [],
+      });
 
       project.joinRequests = project.joinRequests.filter(
         (reqId: any) => !reqId.equals(requestUserId)
@@ -577,4 +594,3 @@ export async function removeMemberFromProject(
     };
   }
 }
-
