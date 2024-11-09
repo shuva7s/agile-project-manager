@@ -26,8 +26,8 @@ async function CheckUserIsAdminOrMemberAndRender({
         <>
           <section className="my-6 max-w-5xl mx-auto flex justify-between items-center gap-2">
             {currentSprintData.hasStarted && !currentSprintData.hasEnded ? (
-              <div>
-                <Clock />{" "}
+              <div className="flex items-center gap-2">
+                <Clock className="text-primary"/>
                 <span>
                   {currentSprintData.timeSpan - currentSprintData.currentTime}{" "}
                   days
