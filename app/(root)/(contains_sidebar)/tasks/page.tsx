@@ -34,7 +34,7 @@ async function MyTasksRenderer() {
                   <Clock /> <span>2 days</span>
                 </div>
                 <Link href={`/project/${task.projectId}`}>
-                  <Button>
+                  <Button variant="secondary">
                     Visit project <ArrowUpRight />
                   </Button>
                 </Link>

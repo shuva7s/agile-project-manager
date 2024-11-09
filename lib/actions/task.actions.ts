@@ -573,6 +573,7 @@ export async function getMyTasks() {
           taskId: task._id,
           taskName: task.name,
           taskDescription: task.description,
+          taskSubmitted: task.isSubmitted,
           priority: task.priority, // Include priority field here
           assignedMembers: assignedMembers.map((member: any) => ({
             username: member.username,
@@ -582,6 +583,7 @@ export async function getMyTasks() {
       })
     );
 
+    console.dir(JSON.parse(JSON.stringify(taskDetails[0])));
     return {
       success: true,
       tasks: JSON.parse(JSON.stringify(taskDetails)),
