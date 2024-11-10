@@ -2,6 +2,7 @@
 
 import User from "../database/models/user.model";
 import { connectToDatabase } from "../database/mongoose";
+import { sendWelcomeEmail } from "./utility.actions";
 
 export type CreateUserParams = {
   clerkId: string;
@@ -16,6 +17,7 @@ export async function createUser(user: CreateUserParams) {
   try {
     await connectToDatabase();
     const newUser = await User.create(user);
+    await sendWelcomeEmail(newUser.email);
     return JSON.parse(JSON.stringify(newUser));
   } catch (error: any) {
     // TODO: Error handling
