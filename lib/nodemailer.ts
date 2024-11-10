@@ -1,5 +1,3 @@
-"use server";
-
 import nodemailer, { Transporter } from "nodemailer";
 
 interface EmailOptions {
@@ -20,12 +18,17 @@ const transporter: Transporter = nodemailer.createTransport({
 
 export const sendEmail = async ({ to, subject, html }: EmailOptions) => {
   try {
+    if (!transporter) {
+      throw new Error("Email transporter is not configured.");
+    }
+
     const info = await transporter.sendMail({
       from: `"Your Name" <your-email@domain.com>`, // sender address
       to,
       subject,
       html,
     });
+    
     return info;
   } catch (error) {
     console.error("Error sending email:", error);

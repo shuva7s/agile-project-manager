@@ -2,7 +2,7 @@
 
 import User from "../database/models/user.model";
 import { connectToDatabase } from "../database/mongoose";
-import { sendWelcomeEmail } from "./utility.actions";
+import { sendEmail } from "../nodemailer";
 
 export type CreateUserParams = {
   clerkId: string;
@@ -15,9 +15,14 @@ export type CreateUserParams = {
 
 export async function createUser(user: CreateUserParams) {
   try {
+    console.log("CreateUser function called");
     await connectToDatabase();
     const newUser = await User.create(user);
-    await sendWelcomeEmail(newUser.email);
+    await sendEmail({
+      to: newUser.email, // Use the new user's email
+      subject: "Welcome to Our Platform!",
+      html: "<h1>Welcome!</h1><p>Thank you for signing up.</p>",
+    });
     return JSON.parse(JSON.stringify(newUser));
   } catch (error: any) {
     // TODO: Error handling

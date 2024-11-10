@@ -7,7 +7,6 @@ import User from "../database/models/user.model";
 import Project from "../database/models/project.model";
 import { revalidatePath } from "next/cache";
 import { Sprint, Task } from "../database/models/sprint.model";
-import { connect } from "http2";
 
 export async function checkUserIsAdminAndReturnBackLogTasks(projectId: string) {
   try {
