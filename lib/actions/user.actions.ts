@@ -2,7 +2,6 @@
 
 import User from "../database/models/user.model";
 import { connectToDatabase } from "../database/mongoose";
-import { sendEmail } from "../nodemailer";
 
 export type CreateUserParams = {
   clerkId: string;
