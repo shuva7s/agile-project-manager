@@ -98,6 +98,68 @@ export async function updateProject({}) {}
 
 export async function deleteProject({}) {}
 
+// export async function getProjects(getHosted = false) {
+//   try {
+//     await connectToDatabase();
+
+//     const { userName, userId, userMail } = await userInfo();
+
+//     if (!userName || !userId || !userMail) {
+//       return {
+//         success: false,
+//         message: "User credentials not found",
+//       };
+//     }
+
+//     const user = await User.findOne({
+//       clerkId: userId,
+//       email: userMail,
+//       username: userName,
+//     }).populate({
+//       path: "projects._id",
+//       select: "name description members joinRequests createdAt",
+//     });
+
+//     if (!user) {
+//       return {
+//         success: false,
+//         message: "User not found",
+//       };
+//     }
+
+//     const projects = user.projects
+//       .filter((project: any) => {
+//         const projectData = project._id;
+//         if (!projectData) return false;
+
+//         // Find the user's role in each project's members array
+//         const userRole = projectData.members.find((member: any) =>
+//           member._id.equals(user._id)
+//         )?.role;
+
+//         // Filter based on role (admin if getHosted is true, otherwise non-admin)
+//         return getHosted ? userRole === "admin" : userRole !== "admin";
+//       })
+//       .map((project: any) => ({
+//         _id: project._id._id,
+//         name: project._id.name,
+//         description: project._id.description,
+//         memberCount: project._id.members?.length || 0,
+//         joinRequestCount: project._id.joinRequests?.length || 0,
+//       }));
+
+//     return {
+//       success: true,
+//       projects,
+//     };
+//   } catch (error: any) {
+//     return {
+//       success: false,
+//       message: error.message,
+//     };
+//   }
+// }
+
 export async function getProjects(getHosted = false) {
   try {
     await connectToDatabase();
@@ -117,7 +179,17 @@ export async function getProjects(getHosted = false) {
       username: userName,
     }).populate({
       path: "projects._id",
-      select: "name description members joinRequests createdAt",
+      populate: [
+        {
+          path: "cureentSprint",
+          select: "hasStarted",
+        },
+        {
+          path: "backlog",
+          select: "status",
+        },
+      ],
+      select: "name description members joinRequests createdAt cureentSprint backlog",
     });
 
     if (!user) {
@@ -140,13 +212,25 @@ export async function getProjects(getHosted = false) {
         // Filter based on role (admin if getHosted is true, otherwise non-admin)
         return getHosted ? userRole === "admin" : userRole !== "admin";
       })
-      .map((project: any) => ({
-        _id: project._id._id,
-        name: project._id.name,
-        description: project._id.description,
-        memberCount: project._id.members?.length || 0,
-        joinRequestCount: project._id.joinRequests?.length || 0,
-      }));
+      .map((project: any) => {
+        // Calculate hasStarted, totalTasks, and completedTasks
+        const hasStarted = project._id.cureentSprint?.hasStarted || false;
+        const totalTasks = project._id.backlog?.length || 0;
+        const completedTasks = project._id.backlog?.filter(
+          (task: any) => task.status === "com"
+        ).length || 0;
+
+        return {
+          _id: project._id._id,
+          name: project._id.name,
+          description: project._id.description,
+          memberCount: project._id.members?.length || 0,
+          joinRequestCount: project._id.joinRequests?.length || 0,
+          hasStarted,
+          totalTasks,
+          completedTasks,
+        };
+      });
 
     return {
       success: true,
@@ -159,6 +243,7 @@ export async function getProjects(getHosted = false) {
     };
   }
 }
+
 
 export async function checkUserAccessAndReturnProjectData(projectId: string) {
   try {

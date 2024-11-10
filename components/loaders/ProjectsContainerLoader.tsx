@@ -10,7 +10,9 @@ const ProjectsContainerLoader = ({ count = 7 }: { count?: number }) => {
             <Skeleton className="w-52 h-6 bg-primary/30" />
           </div>
           <div className="min-h-48 flex justify-center items-center text-muted-foreground">
-            <p>Card Content</p>
+            <div className="min-h-44 aspect-square rounded-full bg-accent my-12 flex justify-center items-center">
+              <div className="min-h-36 aspect-square rounded-full bg-background"/>
+            </div>
           </div>
           <div className="flex justify-between items-center text-muted-foreground">
             <div className="flex gap-2">
