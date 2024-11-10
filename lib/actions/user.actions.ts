@@ -18,11 +18,6 @@ export async function createUser(user: CreateUserParams) {
     console.log("CreateUser function called");
     await connectToDatabase();
     const newUser = await User.create(user);
-    await sendEmail({
-      to: newUser.email, // Use the new user's email
-      subject: "Welcome to Our Platform!",
-      html: "<h1>Welcome!</h1><p>Thank you for signing up.</p>",
-    });
     return JSON.parse(JSON.stringify(newUser));
   } catch (error: any) {
     // TODO: Error handling

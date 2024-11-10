@@ -7,6 +7,7 @@ import { connectToDatabase } from "../database/mongoose";
 import { userInfo } from "./utility.actions";
 import { Types } from "mongoose";
 import { Sprint } from "../database/models/sprint.model";
+import { sendEmail } from "../nodemailer";
 
 export async function createProject({
   projectName,
