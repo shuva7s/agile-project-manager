@@ -1,19 +1,14 @@
 const PageIntro = ({
-  icon,
   heading,
   description,
 }: {
-  icon: React.ReactNode;
   heading: string;
   description: string;
 }) => {
   return (
     <div className="mt-4">
-      <div className="flex items-center">
-        <div className="inline-flex text-primary mr-2 rounded-md">{icon}</div>
-        <h1 className="page_heading">{heading}</h1>
-      </div>
-      <p className="page_des mt-2 text-lg">{description}</p>
+      <h1 className="text-3xl font-bold tracking-wide">{heading}</h1>
+      <p className="text-muted-foreground mt-2 text-lg">{description}</p>
     </div>
   );
 };

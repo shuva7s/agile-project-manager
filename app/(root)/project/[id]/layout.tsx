@@ -5,7 +5,6 @@ import MobileNabvar from "@/components/shared/MobileNabvar";
 import PageIntro from "@/components/shared/PageIntro";
 import ProjectOptions from "@/components/shared/ProjectOptions";
 import { checkUserAccessAndReturnProjectData } from "@/lib/actions/project.actions";
-import { SquareChartGantt } from "lucide-react";
 export default async function ProjectLayout({
   children,
   params,
@@ -26,7 +25,6 @@ export default async function ProjectLayout({
               <PageIntro
                 heading={project.name}
                 description={project.description}
-                icon={<SquareChartGantt className="w-8 h-8 rotate-180" />}
               />
               <ProjectOptions
                 projectId={params.id}
@@ -49,7 +47,6 @@ export default async function ProjectLayout({
               <PageIntro
                 heading={project!.name}
                 description={project!.description}
-                icon={<SquareChartGantt className="w-8 h-8 rotate-180" />}
               />
             </section>
 

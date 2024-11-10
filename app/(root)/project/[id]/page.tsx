@@ -62,7 +62,7 @@ async function CheckUserIsAdminOrMemberAndRender({
             >
               <AccordionItem value="item-1">
                 <AccordionTrigger className="">
-                  <h2 className="">Designing</h2>
+                  <p className="">Designing</p>
                 </AccordionTrigger>
                 <TaskList
                   isAdmin={isAdmin}
@@ -73,7 +73,7 @@ async function CheckUserIsAdminOrMemberAndRender({
               </AccordionItem>
               <AccordionItem value="item-2">
                 <AccordionTrigger className="">
-                  <h2 className="">Development</h2>
+                  <p className="">Development</p>
                 </AccordionTrigger>
                 <TaskList
                   isAdmin={isAdmin}
@@ -84,7 +84,7 @@ async function CheckUserIsAdminOrMemberAndRender({
               </AccordionItem>
               <AccordionItem value="item-3">
                 <AccordionTrigger className="">
-                  <h2 className="">Testing</h2>
+                  <p className="">Testing</p>
                 </AccordionTrigger>
                 <TaskList
                   isAdmin={isAdmin}
@@ -95,7 +95,7 @@ async function CheckUserIsAdminOrMemberAndRender({
               </AccordionItem>
               <AccordionItem value="item-4">
                 <AccordionTrigger className="">
-                  <h2 className="">Deployment</h2>
+                  <p className="">Deployment</p>
                 </AccordionTrigger>
                 <TaskList
                   isAdmin={isAdmin}
@@ -106,7 +106,7 @@ async function CheckUserIsAdminOrMemberAndRender({
               </AccordionItem>
               <AccordionItem value="item-5">
                 <AccordionTrigger className="">
-                  <h2 className="">Done</h2>
+                  <p className="">Done</p>
                 </AccordionTrigger>
                 <TaskList
                   isAdmin={isAdmin}

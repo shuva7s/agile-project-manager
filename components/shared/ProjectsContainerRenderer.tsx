@@ -41,7 +41,7 @@ async function ProjectsContainer({ getHosted = true }) {
                     </div>
                   )}
                 </CardContent>
-                <CardFooter className="flex justify-between items-center text-muted-foreground pb-4">
+                <CardFooter className="flex justify-between items-center text-muted-foreground pb-4 flex-wrap">
                   <Button
                     asChild
                     variant="ghost"

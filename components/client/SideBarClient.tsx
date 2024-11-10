@@ -18,8 +18,8 @@ const SideBarClient = ({ isMobile = false }: { isMobile?: boolean }) => {
               className={`w-full justify-start rounded-2xl text-muted-foreground ${
                 (link.href === "/" && pathName === "/") ||
                 (link.href !== "/" && pathName.includes(link.href))
-                  ? "bg-primary py-7 text-white"
-                  : "bg-transparent py-7 hover:text-white"
+                  ? "bg-primary py-7 text-primary-foreground"
+                  : "bg-transparent py-7 hover:text-primary-foreground"
               }`}
             >
               <Link href={link.href} className="flex gap-2">

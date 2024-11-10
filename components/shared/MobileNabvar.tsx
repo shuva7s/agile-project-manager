@@ -28,7 +28,7 @@ const MobileNabvar = ({ forPc = false }: { forPc?: boolean }) => {
         <SheetClose asChild>
           <Link
             href="/"
-            className="flex mx-2 mt-2 py-2 items-center gap-2 text-3xl text-primary font-semibold pl-2"
+            className="flex mx-2 mt-2 py-2 items-center gap-2 text-3xl font-semibold pl-2"
           >
             <Aperture className="w-8 h-8" />
             Agile

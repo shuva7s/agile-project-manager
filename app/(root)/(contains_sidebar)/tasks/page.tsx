@@ -1,7 +1,7 @@
 import ErrorDiv from "@/components/shared/ErrorDiv";
 import PageIntro from "@/components/shared/PageIntro";
 import { getMyTasks } from "@/lib/actions/task.actions";
-import { ArrowUpRight, Clock, ListTodo } from "lucide-react";
+import { ArrowUpRight, Clock } from "lucide-react";
 import { Suspense } from "react";
 import {
   Card,
@@ -74,7 +74,6 @@ export default function YourTasksPage() {
   return (
     <main>
       <PageIntro
-        icon={<ListTodo className="w-8 h-8" />}
         heading="Your tasks"
         description="Tasks you are assigned will appear here"
       />
