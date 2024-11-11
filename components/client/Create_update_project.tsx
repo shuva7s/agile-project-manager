@@ -100,10 +100,13 @@ const Create_update_project = ({
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button disabled={processing} className="rounded-2xl w-full sm:w-fit py-6 sm:py-4 sm:mt-0">
+        <Button
+          disabled={processing}
+          className="rounded-2xl w-full sm:w-fit py-6 sm:py-4 sm:mt-0"
+        >
           {processing ? (
             <div className="flex items-center flex-row gap-2">
-              <Loader className="animate-spin"/>
+              <Loader className="animate-spin" />
               Creating...
             </div>
           ) : (
@@ -111,7 +114,7 @@ const Create_update_project = ({
           )}
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px] rounded-none sm:rounded-2xl p-6 md:p-8">
+      <DialogContent className="sm:max-w-[425px] rounded-none sm:rounded-2xl p-6 md:p-8 tracking-wide">
         <DialogHeader>
           <DialogTitle className="text-primary">
             {type === "create" ? "Create" : "Update"} project

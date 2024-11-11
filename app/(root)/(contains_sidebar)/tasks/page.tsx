@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Weitage from "@/components/shared/Weitage";
 import MyTasksLoad from "@/components/loaders/MyTasksLoad";
+import SubmitTask from "@/components/client/SubmitTask";
 
 async function MyTasksRenderer() {
   try {
@@ -25,9 +26,18 @@ async function MyTasksRenderer() {
         <section className="columns-1 sm:columns-2 lg:columns-3 gap-4 space-y-4 wrap">
           {tasks.map((task: any) => (
             <Card key={task.taskId} className="break-inside-avoid">
-              <CardHeader>
-                <CardTitle>{task.taskName}</CardTitle>
-                <CardDescription>{task.taskDescription}</CardDescription>
+              <CardHeader className="flex flex-row justify-between items-start">
+                <div className="flex-1">
+                  <CardTitle>{task.taskName}</CardTitle>
+                  <CardDescription>{task.taskDescription}</CardDescription>
+                </div>
+                {task.remainingDays !== null && (
+                  <SubmitTask
+                    projectId={task.projectId}
+                    taskId={task.taskId}
+                    taskSubmitted={task.taskSubmitted}
+                  />
+                )}
               </CardHeader>
               <CardContent className="flex flex-row gap-2 items-center justify-between">
                 {task.remainingDays === null ? (
@@ -39,7 +49,7 @@ async function MyTasksRenderer() {
                 )}
 
                 <Link href={`/project/${task.projectId}`}>
-                  <Button variant="secondary">
+                  <Button variant="outline">
                     Visit project <ArrowUpRight />
                   </Button>
                 </Link>

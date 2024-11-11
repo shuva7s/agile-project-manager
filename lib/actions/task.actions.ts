@@ -399,7 +399,8 @@ export async function addMembersToTask(
       // Save each updated user
       await user.save();
     }
-
+    revalidatePath(`/project/${projectId}`);
+    revalidatePath(`/tasks`);
     return {
       success: true,
       message: "Members added successfully to the task and users updated",
