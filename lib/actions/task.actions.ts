@@ -570,7 +570,7 @@ export async function getMyTasks() {
       populate: {
         path: "currentSprint",
         model: "Sprint",
-        select: "timeSpan currentTime hasStarted", // Change sprintStarted to hasStarted here
+        select: "timeSpan currentTime hasStarted",
       },
     });
 
@@ -637,6 +637,7 @@ export async function getMyTasks() {
           taskSubmitted: task.isSubmitted,
           priority: task.priority,
           remainingDays,
+          errorNote: task.errorNote,
           assignedMembers: assignedMembers.map((member: any) => ({
             username: member.username,
             photo: member.photo,

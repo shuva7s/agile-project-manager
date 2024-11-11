@@ -22,6 +22,7 @@ async function MyTasksRenderer() {
   try {
     const { success, message, tasks } = await getMyTasks();
     if (success) {
+      console.dir(tasks[0]);
       return (
         <section className="columns-1 sm:columns-2 lg:columns-3 gap-4 space-y-4 wrap">
           {tasks.map((task: any) => (
@@ -39,20 +40,27 @@ async function MyTasksRenderer() {
                   />
                 )}
               </CardHeader>
-              <CardContent className="flex flex-row gap-2 items-center justify-between">
-                {task.remainingDays === null ? (
-                  <p className="text-destructive">Not started</p>
-                ) : (
-                  <div className="flex flex-row gap-2 items-center text-primary">
-                    <Clock /> <span>{task.remainingDays} days</span>
+              <CardContent className="">
+                <div className="flex flex-row gap-2 items-center justify-between">
+                  {task.remainingDays === null ? (
+                    <p className="text-muted-foreground">Not started</p>
+                  ) : (
+                    <div className="flex flex-row gap-2 items-center text-primary">
+                      <Clock /> <span>{task.remainingDays} days</span>
+                    </div>
+                  )}
+
+                  <Link href={`/project/${task.projectId}`}>
+                    <Button variant="outline">
+                      Visit project <ArrowUpRight />
+                    </Button>
+                  </Link>
+                </div>
+                {task.errorNote !== "" && (
+                  <div className="mt-6 border border-red-500 rounded-2xl bg-destructive/50 px-4 py-2">
+                    <p className="text-red-500">{task.errorNote}</p>
                   </div>
                 )}
-
-                <Link href={`/project/${task.projectId}`}>
-                  <Button variant="outline">
-                    Visit project <ArrowUpRight />
-                  </Button>
-                </Link>
               </CardContent>
               <CardFooter className="flex justify-between gap-2">
                 <div className="flex flex-row items-center -space-x-4">
