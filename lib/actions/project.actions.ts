@@ -29,7 +29,7 @@ export async function createProject({
       name: projectName,
       description: projectDescription,
       sprints: [newSprint._id],
-      cureentSprint: newSprint._id,
+      currentSprint: newSprint._id,
     });
 
     if (!newProject) {
@@ -181,7 +181,7 @@ export async function getProjects(getHosted = false) {
       path: "projects._id",
       populate: [
         {
-          path: "cureentSprint",
+          path: "currentSprint",
           select: "hasStarted",
         },
         {
@@ -189,7 +189,7 @@ export async function getProjects(getHosted = false) {
           select: "status",
         },
       ],
-      select: "name description members joinRequests createdAt cureentSprint backlog",
+      select: "name description members joinRequests createdAt currentSprint backlog",
     });
 
     if (!user) {
@@ -214,7 +214,7 @@ export async function getProjects(getHosted = false) {
       })
       .map((project: any) => {
         // Calculate hasStarted, totalTasks, and completedTasks
-        const hasStarted = project._id.cureentSprint?.hasStarted || false;
+        const hasStarted = project._id.currentSprint?.hasStarted || false;
         const totalTasks = project._id.backlog?.length || 0;
         const completedTasks = project._id.backlog?.filter(
           (task: any) => task.status === "com"

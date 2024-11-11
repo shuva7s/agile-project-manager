@@ -24,10 +24,10 @@ async function CheckUserIsAdminOrMemberAndRender({
     if (success) {
       return (
         <>
-          <section className="my-6 max-w-5xl mx-auto flex justify-between items-center gap-2">
+          <section className="my-4 max-w-5xl mx-auto flex justify-between items-center gap-2">
             {currentSprintData.hasStarted && !currentSprintData.hasEnded ? (
               <div className="flex items-center gap-2">
-                <Clock className="text-primary"/>
+                <Clock className="text-primary" />
                 <span>
                   {currentSprintData.timeSpan - currentSprintData.currentTime}{" "}
                   days

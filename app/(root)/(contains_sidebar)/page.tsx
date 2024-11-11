@@ -9,14 +9,17 @@ export default async function Homepage() {
   return (
     <>
       <SignedIn>
-        <main className="min-h-[150vh]">
+        <main className="min-h-[150vh] border-l page_border">
           <PageIntro
             heading="Your projects"
             description="Projects created by you"
           />
-          <div className="w-full flex justify-end">
+
+          <div className="w-full flex justify-end pt-4 sm:pt-0 wrap">
             <Create_update_project type="create" />
           </div>
+
+          <hr />
 
           <ProjectsContainerRenderer getHosted={true} />
         </main>

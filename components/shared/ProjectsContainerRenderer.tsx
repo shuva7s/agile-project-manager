@@ -18,7 +18,7 @@ async function ProjectsContainer({ getHosted = true }) {
     // console.dir(projects);
     if (success && projects && projects.length > 0) {
       return (
-        <section className="columns-1 sm:columns-2 lg:columns-3 gap-4 space-y-4 mt-4">
+        <section className="columns-1 sm:columns-2 xl:columns-3 gap-4 space-y-4 mt-4 wrap">
           {projects.map((project: any) => (
             <Card key={project._id} className="break-inside-avoid">
               <Link href={`/project/${project._id}`}>
@@ -86,7 +86,7 @@ async function ProjectsContainer({ getHosted = true }) {
         </section>
       );
     } else {
-      return <p className="text-muted-foreground mt-4">No projects to show</p>;
+      return <p className="text-muted-foreground mt-4 wrap">No projects to show</p>;
     }
   } catch (error: any) {
     return (

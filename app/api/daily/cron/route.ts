@@ -16,10 +16,10 @@ export async function GET(request: NextRequest) {
     await connectToDatabase();
 
     // Fetch all projects with their current sprints populated
-    const projects = await Project.find({}).populate("cureentSprint");
+    const projects = await Project.find({}).populate("currentSprint");
 
     for (const project of projects) {
-      const currentSprint = project.cureentSprint;
+      const currentSprint = project.currentSprint;
 
       // Check if the current sprint exists, hasn't ended, and has started
       if (
@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
 
           // Add new sprint to the project's sprints array and update the current sprint
           project.sprints.push(newSprint._id);
-          project.cureentSprint = newSprint._id;
+          project.currentSprint = newSprint._id;
           await project.save();
         } else {
           // Increment current sprint's time if it's not yet finished

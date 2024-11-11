@@ -22,7 +22,7 @@ async function MyTasksRenderer() {
     const { success, message, tasks } = await getMyTasks();
     if (success) {
       return (
-        <section className="columns-1 sm:columns-2 lg:columns-3 gap-4 space-y-4 mt-8">
+        <section className="columns-1 sm:columns-2 lg:columns-3 gap-4 space-y-4 wrap">
           {tasks.map((task: any) => (
             <Card key={task.taskId} className="break-inside-avoid">
               <CardHeader>
@@ -30,9 +30,14 @@ async function MyTasksRenderer() {
                 <CardDescription>{task.taskDescription}</CardDescription>
               </CardHeader>
               <CardContent className="flex flex-row gap-2 items-center justify-between">
-                <div className="flex flex-row gap-2 items-center text-primary">
-                  <Clock /> <span>2 days</span>
-                </div>
+                {task.remainingDays === null ? (
+                  <p className="text-destructive">Not started</p>
+                ) : (
+                  <div className="flex flex-row gap-2 items-center text-primary">
+                    <Clock /> <span>{task.remainingDays} days</span>
+                  </div>
+                )}
+
                 <Link href={`/project/${task.projectId}`}>
                   <Button variant="secondary">
                     Visit project <ArrowUpRight />
@@ -72,11 +77,12 @@ async function MyTasksRenderer() {
 
 export default function YourTasksPage() {
   return (
-    <main>
+    <main className="min-h-[150vh] border-l page_border">
       <PageIntro
         heading="Your tasks"
         description="Tasks you are assigned will appear here"
       />
+      <hr />
       <Suspense fallback={<MyTasksLoad />}>
         <MyTasksRenderer />
       </Suspense>

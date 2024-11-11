@@ -20,11 +20,12 @@ export default async function ProjectLayout({
     if (success) {
       if (!canSendJoinReq && (isMember || isAdmin)) {
         return (
-          <main>
+          <main className="wrap">
             <section className="max-w-5xl mx-auto flex flex-col sm:flex-row justify-between">
               <PageIntro
                 heading={project.name}
                 description={project.description}
+                nowrap={true}
               />
               <ProjectOptions
                 projectId={params.id}
@@ -34,7 +35,7 @@ export default async function ProjectLayout({
                 backlogTaskCount={project.backlogTaskCount}
               />
             </section>
-            {/* <section>{isAdmin ? <p>admin</p> : <p>member</p>}</section> */}
+            <hr className="max-w-5xl mx-auto"/>
             {children}
             <BackButton />
             <MobileNabvar forPc={true} />

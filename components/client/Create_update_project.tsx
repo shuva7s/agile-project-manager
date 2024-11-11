@@ -100,7 +100,7 @@ const Create_update_project = ({
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button disabled={processing} className="rounded-2xl w-full sm:w-fit py-6 sm:py-4 mt-4 sm:mt-0">
+        <Button disabled={processing} className="rounded-2xl w-full sm:w-fit py-6 sm:py-4 sm:mt-0">
           {processing ? (
             <div className="flex items-center flex-row gap-2">
               <Loader className="animate-spin"/>

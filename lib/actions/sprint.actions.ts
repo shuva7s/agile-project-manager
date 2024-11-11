@@ -57,13 +57,13 @@ import { Sprint } from "../database/models/sprint.model";
 //       (member: any) => member._id.equals(user._id) && member.role === "admin"
 //     );
 
-//     if (!project.cureentSprint) {
+//     if (!project.currentSprint) {
 //       return {
 //         success: false,
 //         message: "No current sprint available",
 //       };
 //     }
-//     const currentSprint = await Sprint.findById(project.cureentSprint)
+//     const currentSprint = await Sprint.findById(project.currentSprint)
 //       .populate({
 //         path: "requirements designing development testing deployment completed",
 //         model: "Task",
@@ -139,14 +139,14 @@ export async function checkUserIsAdminAndReturnCurrentSprintData(
       (member: any) => member._id.equals(user._id) && member.role === "admin"
     );
 
-    if (!project.cureentSprint) {
+    if (!project.currentSprint) {
       return {
         success: false,
         message: "No current sprint available",
       };
     }
 
-    const currentSprint = await Sprint.findById(project.cureentSprint)
+    const currentSprint = await Sprint.findById(project.currentSprint)
       .populate({
         path: "requirements designing development testing deployment completed",
         populate: [

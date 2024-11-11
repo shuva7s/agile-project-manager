@@ -203,7 +203,7 @@ export async function moveTaskToDesigning(projectId: string, taskId: string) {
     // );
 
     // Step 2: Find the current sprint and add the task to its designing phase
-    const currentSprint = await Sprint.findById(project.cureentSprint);
+    const currentSprint = await Sprint.findById(project.currentSprint);
     if (!currentSprint) {
       return {
         success: false,
@@ -425,10 +425,14 @@ export async function addMembersToTask(
 //       };
 //     }
 
+//     // Find the user with projects and tasks data
 //     const user = await User.findOne({
 //       clerkId: userId,
 //       email: userMail,
 //       username: userName,
+//     }).populate({
+//       path: "projects._id", // Populate the project details in user's projects
+//       select: "name", // Retrieve the project name
 //     });
 
 //     if (!user) {
@@ -451,10 +455,11 @@ export async function addMembersToTask(
 //     // Map through tasks and retrieve necessary information, including project details
 //     const taskDetails = await Promise.all(
 //       tasks.map(async (task: any) => {
-//         // Get the project data separately
-//         const project = await Project.findById(task.projectId).select("name");
-
-//         // Determine the correct members field based on task status
+//         // Find the projectId by checking which user's project includes the current task
+//         const userProject = user.projects.find((project: any) =>
+//           project.tasks.some((userTaskId: any) => userTaskId.equals(task._id))
+//         );
+//         const projectId = userProject ? userProject._id._id : undefined;
 //         let assignedMembersField = "";
 //         if (task.status === "des") assignedMembersField = "assignedDesigners";
 //         else if (task.status === "dev")
@@ -463,8 +468,6 @@ export async function addMembersToTask(
 //           assignedMembersField = "assignedTesters";
 //         else if (task.status === "dep")
 //           assignedMembersField = "assignedDeployers";
-
-//         // Populate only the relevant members
 //         await task.populate({
 //           path: assignedMembersField,
 //           select: "username photo",
@@ -473,10 +476,12 @@ export async function addMembersToTask(
 //         const assignedMembers = task[assignedMembersField] || [];
 
 //         return {
-//           projectId: project?._id,
+//           projectId,
 //           taskId: task._id,
 //           taskName: task.name,
 //           taskDescription: task.description,
+//           taskSubmitted: task.isSubmitted,
+//           priority: task.priority, // Include priority field here
 //           assignedMembers: assignedMembers.map((member: any) => ({
 //             username: member.username,
 //             photo: member.photo,
@@ -485,12 +490,54 @@ export async function addMembersToTask(
 //       })
 //     );
 
-//     console.dir(taskDetails);
-
+//     // console.dir(JSON.parse(JSON.stringify(taskDetails[0])));
 //     return {
 //       success: true,
-//       tasks: taskDetails,
+//       tasks: JSON.parse(JSON.stringify(taskDetails)),
 //     };
+//   } catch (error: any) {
+//     return {
+//       success: false,
+//       message: error.message || "An error occurred",
+//     };
+//   }
+// }
+
+// export async function gettingAllTasks() {
+//   try {
+//     await connectToDatabase();
+//     const { userId, userMail, userName } = await userInfo();
+//     if (!userId || !userMail || !userName) {
+//       console.log("User credentials not found");
+//     }
+//     const user = await User.findOne({
+//       clerkId: userId,
+//       email: userMail,
+//       username: userName,
+//     });
+
+//     if (!user) {
+//       console.log("user not found");
+//     }
+//     const allTasks = [];
+
+//     for (const project of user.projects) {
+//       let pr = await Project.findOne({
+//         _id: project._id,
+//       });
+
+//       let sprint = await Sprint.findOne({ _id: pr.currentSprint });
+
+//       let sprintRemainingTime = sprint.timeSpan - sprint.currentTime;
+
+//       for (const task of project.tasks) {
+//         let tk = await Task.findOne({ _id: task });
+//         tk.remainingTime = sprintRemainingTime;
+//         allTasks.push(tk);
+//       }
+//     }
+
+//     console.dir(JSON.parse(JSON.stringify(allTasks)));
 //   } catch (error: any) {
 //     return {
 //       success: false,
@@ -512,14 +559,18 @@ export async function getMyTasks() {
       };
     }
 
-    // Find the user with projects and tasks data
     const user = await User.findOne({
       clerkId: userId,
       email: userMail,
       username: userName,
     }).populate({
-      path: "projects._id", // Populate the project details in user's projects
-      select: "name", // Retrieve the project name
+      path: "projects._id",
+      select: "name currentSprint tasks",
+      populate: {
+        path: "currentSprint",
+        model: "Sprint",
+        select: "timeSpan currentTime hasStarted", // Change sprintStarted to hasStarted here
+      },
     });
 
     if (!user) {
@@ -529,7 +580,6 @@ export async function getMyTasks() {
       };
     }
 
-    // Find tasks assigned to the user based on role
     const tasks = await Task.find({
       $or: [
         { assignedDesigners: user._id },
@@ -539,17 +589,29 @@ export async function getMyTasks() {
       ],
     });
 
-    // Map through tasks and retrieve necessary information, including project details
     const taskDetails = await Promise.all(
       tasks.map(async (task: any) => {
-        // Find the projectId by checking which user's project includes the current task
         const userProject = user.projects.find((project: any) =>
           project.tasks.some((userTaskId: any) => userTaskId.equals(task._id))
         );
-
         const projectId = userProject ? userProject._id._id : undefined;
+        const currentSprint = userProject
+          ? userProject._id.currentSprint
+          : null;
 
-        // Determine the correct members field based on task status
+        let remainingDays = null;
+        if (currentSprint && currentSprint.hasStarted) {
+          if (
+            currentSprint.timeSpan !== undefined &&
+            currentSprint.currentTime !== undefined
+          ) {
+            remainingDays = Math.max(
+              0,
+              currentSprint.timeSpan - currentSprint.currentTime
+            );
+          }
+        }
+
         let assignedMembersField = "";
         if (task.status === "des") assignedMembersField = "assignedDesigners";
         else if (task.status === "dev")
@@ -559,7 +621,6 @@ export async function getMyTasks() {
         else if (task.status === "dep")
           assignedMembersField = "assignedDeployers";
 
-        // Populate only the relevant members
         await task.populate({
           path: assignedMembersField,
           select: "username photo",
@@ -573,7 +634,8 @@ export async function getMyTasks() {
           taskName: task.name,
           taskDescription: task.description,
           taskSubmitted: task.isSubmitted,
-          priority: task.priority, // Include priority field here
+          priority: task.priority,
+          remainingDays,
           assignedMembers: assignedMembers.map((member: any) => ({
             username: member.username,
             photo: member.photo,
@@ -582,7 +644,6 @@ export async function getMyTasks() {
       })
     );
 
-    console.dir(JSON.parse(JSON.stringify(taskDetails[0])));
     return {
       success: true,
       tasks: JSON.parse(JSON.stringify(taskDetails)),

@@ -15,7 +15,7 @@ const ProjectSchema = new Schema({
 
   backlog: [{ type: Types.ObjectId, ref: "Task", default: [] }],
   sprints: [{ type: Types.ObjectId, ref: "Sprint" }],
-  cureentSprint: { type: Types.ObjectId, ref: "Sprint" },
+  currentSprint: { type: Types.ObjectId, ref: "Sprint" },
 
   createdAt: { type: Date, default: Date.now },
 });

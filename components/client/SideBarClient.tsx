@@ -15,11 +15,11 @@ const SideBarClient = ({ isMobile = false }: { isMobile?: boolean }) => {
           <li key={link.name} className="w-full">
             <Button
               asChild
-              className={`w-full justify-start rounded-2xl text-muted-foreground ${
+              className={`w-full justify-start rounded-2xl p-2 transition-all text-muted-foreground ${
                 (link.href === "/" && pathName === "/") ||
                 (link.href !== "/" && pathName.includes(link.href))
-                  ? "bg-primary py-7 text-primary-foreground"
-                  : "bg-transparent py-7 hover:text-primary-foreground"
+                  ? "bg-primary py-7 text-primary-foreground pl-4"
+                  : "bg-transparent py-7 hover:text-primary-foreground hover:pl-4"
               }`}
             >
               <Link href={link.href} className="flex gap-2">
