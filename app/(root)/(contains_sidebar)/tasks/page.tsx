@@ -22,7 +22,6 @@ async function MyTasksRenderer() {
   try {
     const { success, message, tasks } = await getMyTasks();
     if (success) {
-      console.dir(tasks[0]);
       return (
         <section className="columns-1 sm:columns-2 lg:columns-3 gap-4 space-y-4 wrap">
           {tasks.map((task: any) => (
