@@ -23,6 +23,7 @@ export default function JoinProjectPage() {
             alt="join project"
             width={600}
             height={600}
+            priority={true}
           />
         </div>
       </section>

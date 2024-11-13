@@ -19,6 +19,7 @@ export default async function ProjectLayout({
       await checkUserAccessAndReturnProjectData(params.id);
     if (success) {
       if (!canSendJoinReq && (isMember || isAdmin)) {
+        // console.dir(project);
         return (
           <main className="wrap">
             <section className="max-w-5xl mx-auto flex flex-col sm:flex-row justify-between">
@@ -33,9 +34,10 @@ export default async function ProjectLayout({
                 memberCount={project.memberCount}
                 joinRequestCount={project.joinRequestCount}
                 backlogTaskCount={project.backlogTaskCount}
+                submissionCount={project.submissionCount}
               />
             </section>
-            <hr className="max-w-5xl mx-auto"/>
+            <hr className="max-w-5xl mx-auto" />
             {children}
             <BackButton />
             <MobileNabvar forPc={true} />

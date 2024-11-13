@@ -189,7 +189,8 @@ export async function getProjects(getHosted = false) {
           select: "status",
         },
       ],
-      select: "name description members joinRequests createdAt currentSprint backlog",
+      select:
+        "name description members joinRequests createdAt currentSprint backlog",
     });
 
     if (!user) {
@@ -216,9 +217,9 @@ export async function getProjects(getHosted = false) {
         // Calculate hasStarted, totalTasks, and completedTasks
         const hasStarted = project._id.currentSprint?.hasStarted || false;
         const totalTasks = project._id.backlog?.length || 0;
-        const completedTasks = project._id.backlog?.filter(
-          (task: any) => task.status === "com"
-        ).length || 0;
+        const completedTasks =
+          project._id.backlog?.filter((task: any) => task.status === "com")
+            .length || 0;
 
         return {
           _id: project._id._id,
@@ -244,6 +245,98 @@ export async function getProjects(getHosted = false) {
   }
 }
 
+// export async function checkUserAccessAndReturnProjectData(projectId: string) {
+//   try {
+//     if (!Types.ObjectId.isValid(projectId)) {
+//       return {
+//         success: false,
+//         message: "Project not found",
+//       };
+//     }
+
+//     const { userName, userId, userMail } = await userInfo();
+
+//     if (!userName || !userId || !userMail) {
+//       return {
+//         success: false,
+//         message: "User credentials not found",
+//       };
+//     }
+
+//     await connectToDatabase();
+
+//     const user = await User.findOne({
+//       clerkId: userId,
+//       email: userMail,
+//       username: userName,
+//     });
+
+//     if (!user) {
+//       return {
+//         success: false,
+//         message: "User not found",
+//       };
+//     }
+
+//     const project = await Project.findById(
+//       projectId,
+//       "name description members joinRequests _id backlog createdAt"
+//     );
+
+//     if (!project) {
+//       return {
+//         success: false,
+//         message: "Project not found",
+//       };
+//     }
+
+//     const member = project.members.find((member: any) =>
+//       member._id.equals(user._id)
+//     );
+//     const isMember = Boolean(member);
+//     const isAdmin = isMember && member.role === "admin";
+
+//     const hasRequestedJoin = project.joinRequests.some((req: any) =>
+//       req.equals(user._id)
+//     );
+//     const canSendJoinReq = !isMember && !hasRequestedJoin;
+
+//     if (isMember) {
+//       let projectData = {
+//         _id: project._id,
+//         name: project.name,
+//         description: project.description,
+//         memberCount: project.members.length,
+//         joinRequestCount: project.joinRequests.length,
+//         backlogTaskCount: project.backlog.length,
+//       };
+
+//       return {
+//         success: true,
+//         project: projectData,
+//         isAdmin,
+//         isMember,
+//         canSendJoinReq,
+//       };
+//     } else {
+//       let projectData = {
+//         _id: project._id,
+//         name: project.name,
+//         description: project.description,
+//       };
+//       return {
+//         success: true,
+//         project: projectData,
+//         canSendJoinReq,
+//       };
+//     }
+//   } catch (error: any) {
+//     return {
+//       success: false,
+//       message: error.message,
+//     };
+//   }
+// }
 
 export async function checkUserAccessAndReturnProjectData(projectId: string) {
   try {
@@ -280,7 +373,7 @@ export async function checkUserAccessAndReturnProjectData(projectId: string) {
 
     const project = await Project.findById(
       projectId,
-      "name description members joinRequests _id backlog createdAt"
+      "name description members joinRequests _id backlog createdAt currentSprint"
     );
 
     if (!project) {
@@ -301,6 +394,17 @@ export async function checkUserAccessAndReturnProjectData(projectId: string) {
     );
     const canSendJoinReq = !isMember && !hasRequestedJoin;
 
+    // Calculate submission count if there's an active sprint
+    let submissionCount = 0;
+    if (project.currentSprint) {
+      const currentSprint = await Sprint.findById(project.currentSprint).select(
+        "submissions"
+      );
+      if (currentSprint && currentSprint.submissions) {
+        submissionCount = currentSprint.submissions.length;
+      }
+    }
+
     if (isMember) {
       let projectData = {
         _id: project._id,
@@ -309,6 +413,7 @@ export async function checkUserAccessAndReturnProjectData(projectId: string) {
         memberCount: project.members.length,
         joinRequestCount: project.joinRequests.length,
         backlogTaskCount: project.backlog.length,
+        submissionCount,
       };
 
       return {

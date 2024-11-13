@@ -13,6 +13,9 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { TextSearch } from "lucide-react";
+import { submitTaskFunction } from "@/lib/actions/task.actions";
+import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 const SubmitTask = ({
   projectId,
   taskId,
@@ -22,17 +25,34 @@ const SubmitTask = ({
   taskId: string;
   taskSubmitted: boolean;
 }) => {
+  const [processing, setProcessing] = useState(false);
+  const { toast } = useToast();
+  async function hadleSubmit() {
+    try {
+      setProcessing(true);
+      const { success, message } = await submitTaskFunction(projectId, taskId);
+
+      toast({
+        title: success ? "Success" : "Error",
+        description: message,
+        variant: success ? "default" : "destructive",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Something went wrong",
+        variant: "destructive",
+      });
+    } finally {
+      setProcessing(false);
+    }
+  }
+
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button
-          disabled={taskSubmitted}
-          variant="secondary"
-          size="icon"
-          className="p-0"
-        >
-          {taskSubmitted ? <TextSearch /> : <SquareCheckBig />}
-          {/* <SquareCheckBig className="h-10 w-10" /> */}
+        <Button disabled={processing || taskSubmitted}>
+          {taskSubmitted ? "Under review" : "Submit"}
         </Button>
       </AlertDialogTrigger>
 
@@ -53,7 +73,9 @@ const SubmitTask = ({
           ) : (
             <>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction>Continue</AlertDialogAction>
+              <AlertDialogAction onClick={hadleSubmit}>
+                Continue
+              </AlertDialogAction>
             </>
           )}
         </AlertDialogFooter>

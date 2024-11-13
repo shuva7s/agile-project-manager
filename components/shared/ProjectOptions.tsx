@@ -15,12 +15,14 @@ const ProjectOptions = ({
   memberCount,
   joinRequestCount,
   backlogTaskCount,
+  submissionCount,
 }: {
   projectId: string;
   isAdmin: boolean;
   memberCount: number;
   joinRequestCount?: number;
   backlogTaskCount?: number;
+  submissionCount?: number;
 }) => {
   return (
     <DropdownMenu>
@@ -60,8 +62,7 @@ const ProjectOptions = ({
                 className="w-full h-ful px-2 hover:px-4 py-3 rounded-lg hover:bg-accent hover:text-primary transition-all"
                 href={`/project/${projectId}/backlog`}
               >
-                Backlog{" "}
-                <span className="text-primary">{backlogTaskCount}</span>
+                Backlog <span className="text-primary">{backlogTaskCount}</span>
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem className="p-0">
@@ -69,7 +70,8 @@ const ProjectOptions = ({
                 className="w-full h-ful px-2 hover:px-4 py-3 rounded-lg hover:bg-accent hover:text-primary transition-all"
                 href={`/project/${projectId}/submissions`}
               >
-                Submissions <span className="text-primary">0</span>
+                Submissions{" "}
+                <span className="text-primary">{submissionCount}</span>
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem className="p-0">

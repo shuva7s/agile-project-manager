@@ -12,6 +12,7 @@ import ProjectsContainerLoader from "../loaders/ProjectsContainerLoader";
 import Link from "next/link";
 import { Button } from "../ui/button";
 import { Chart } from "../client/Chart";
+import ErrorDiv from "./ErrorDiv";
 async function ProjectsContainer({ getHosted = true }) {
   try {
     const { success, projects } = await getProjects(getHosted);
@@ -22,7 +23,7 @@ async function ProjectsContainer({ getHosted = true }) {
           {projects.map((project: any) => (
             <Card key={project._id} className="break-inside-avoid">
               <Link href={`/project/${project._id}`}>
-                <CardHeader>
+                <CardHeader className="pb-2">
                   <CardTitle className="text-foreground/80">
                     {project.name}
                   </CardTitle>
@@ -30,11 +31,11 @@ async function ProjectsContainer({ getHosted = true }) {
                 </CardHeader>
                 <CardContent className="p-0">
                   {project.hasStarted ? (
-                    // <Chart
-                    //   total={project.totalTasks}
-                    //   completed={project.completedTasks}
-                    // />
-                    <Chart total={12} completed={5} />
+                    <Chart
+                      total={project.totalTasks}
+                      completed={project.completedTasks}
+                    />
+                    // <Chart total={12} completed={5} />
                   ) : (
                     <div className="min-h-44 flex justify-center items-center">
                       <p className="text-muted-foreground">Not started yet</p>
@@ -86,14 +87,12 @@ async function ProjectsContainer({ getHosted = true }) {
         </section>
       );
     } else {
-      return <p className="text-muted-foreground mt-4 wrap">No projects to show</p>;
+      return (
+        <p className="text-muted-foreground mt-4 wrap">No projects to show</p>
+      );
     }
   } catch (error: any) {
-    return (
-      <div className="text-red-500 bg-destructive/50 p-6 border border-destructive rounded-2xl mt-4">
-        {error.message}
-      </div>
-    );
+    return <ErrorDiv text={error.message} />;
   }
 }
 
