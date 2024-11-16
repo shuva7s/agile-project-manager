@@ -1,4 +1,6 @@
+import EndSprint from "@/components/client/EndSprint";
 import SprintsTab from "@/components/client/SprintsTab";
+import StartSprint from "@/components/client/StartSprint";
 import ErrorDiv from "@/components/shared/ErrorDiv";
 import TaskList from "@/components/shared/TaskList";
 import {
@@ -18,41 +20,61 @@ async function CheckUserIsAdminOrMemberAndRender({
   projectId: string;
 }) {
   try {
-    const { success, message, isAdmin, currentSprintData } =
-      await checkUserIsAdminAndReturnCurrentSprintData(projectId);
+    const {
+      success,
+      message,
+      isAdmin,
+      currentSprintId,
+      currentSprintName,
+      sprints,
+      currentSprintData,
+      canEnd,
+    } = await checkUserIsAdminAndReturnCurrentSprintData(projectId);
 
     if (success) {
+      // console.log(currentSprintName);
+      // console.dir(sprints);
+      // console.dir(currentSprintData);
+
+      // console.log(canEnd);
       return (
         <>
-          <section className="my-4 max-w-5xl mx-auto flex justify-between items-center gap-2">
-            {currentSprintData.hasStarted && !currentSprintData.hasEnded ? (
-              <div className="flex items-center gap-2">
-                <Clock className="text-primary" />
-                <span>
-                  {currentSprintData.timeSpan - currentSprintData.currentTime}{" "}
-                  days
-                </span>
-              </div>
-            ) : (
-              <>
-                {isAdmin ? (
-                  <Button>Start sprint</Button>
-                ) : (
-                  <p className="text-destructive">Not started</p>
-                )}
-              </>
+          <section className="my-4 max-w-7xl mx-auto flex justify-between items-center gap-2">
+            <SprintsTab
+              projectId={projectId}
+              currentSprintId={currentSprintId}
+              currentSprintName={currentSprintName}
+              sprints={sprints}
+            />
+            {!currentSprintData.hasStarted && (
+              <StartSprint projectId={projectId} />
             )}
-
-            {currentSprintData.hasEnded && (
-              <>
-                {isAdmin ? (
-                  <Button>Add new sprint</Button>
-                ) : (
-                  <p className="text-destructive">Sprint ended</p>
-                )}
-              </>
+            {currentSprintData.hasStarted &&
+              !currentSprintData.hasEnded &&
+              !canEnd && (
+                <div className="flex flex-row gap-2 items-center">
+                  <Clock className="text-primary" />
+                  <span>
+                    {currentSprintData.timeSpan - currentSprintData.currentTime}{" "}
+                    days
+                  </span>
+                </div>
+              )}
+            {currentSprintData.hasStarted &&
+              !currentSprintData.hasEnded &&
+              canEnd && (
+                <div className="flex flex-row gap-2 items-center">
+                  <Clock className="text-primary" />
+                  <span>
+                    {currentSprintData.timeSpan - currentSprintData.currentTime}{" "}
+                    days
+                  </span>
+                  <EndSprint projectId={projectId} />
+                </div>
+              )}
+            {currentSprintData.hasStarted && currentSprintData.hasEnded && (
+              <p>Sprint ended</p>
             )}
-            <SprintsTab />
           </section>
           <section>
             <Accordion

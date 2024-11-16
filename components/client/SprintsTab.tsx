@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
@@ -14,18 +15,26 @@ import { ChevronDown } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
-const SprintsTab = ({ sprints }: { sprints?: any[] }) => {
-  const [position, setPosition] = useState("top");
+const SprintsTab = ({
+  projectId,
+  currentSprintId,
+  currentSprintName,
+  sprints,
+}: {
+  projectId: String;
+  currentSprintId: string;
+  currentSprintName: string;
+  sprints: any;
+}) => {
+  const [tab, setTab] = useState(currentSprintName);
+  // console.log(tab);
   const [isOpen, setIsOpen] = useState(false);
 
   return (
     <DropdownMenu onOpenChange={(open) => setIsOpen(open)}>
       <DropdownMenuTrigger asChild>
-        <Button
-          variant="secondary"
-          className="focus:outline-none py-6 sm:py-4"
-        >
-          {position}
+        <Button variant="secondary" className="focus:outline-none py-6 sm:py-4">
+          {tab}
           <ChevronDown
             className={`h-4 w-4 shrink-0 transition-transform duration-200 ${
               isOpen ? "rotate-180" : "rotate-0"
@@ -33,42 +42,27 @@ const SprintsTab = ({ sprints }: { sprints?: any[] }) => {
           />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-56 p-1">
+      <DropdownMenuContent className="w-56 p-1 max-h-[270px] overflow-y-auto">
         <DropdownMenuLabel>Select sprint</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuRadioGroup value={position} onValueChange={setPosition}>
-          <DropdownMenuRadioItem value="top">
-            <Link
-              href="/"
-              className="w-full h-ful px-2 hover:px-4 py-3 rounded-lg hover:text-primary transition-all"
-            >
-              Top {"(current)"}
-            </Link>
-          </DropdownMenuRadioItem>
-          <DropdownMenuRadioItem value="bottom">
-            <Link
-              href="/"
-              className="w-full h-ful px-2 hover:px-4 py-3 rounded-lg hover:text-primary transition-all"
-            >
-              Bottom
-            </Link>
-          </DropdownMenuRadioItem>
-          <DropdownMenuRadioItem value="right">
-            <Link
-              href="/"
-              className="w-full h-ful px-2 hover:px-4 py-3 rounded-lg hover:text-primary transition-all"
-            >
-              Right
-            </Link>
-          </DropdownMenuRadioItem>
-          <DropdownMenuRadioItem value="left">
-            <Link
-              href="/"
-              className="w-full h-ful px-2 hover:px-4 py-3 rounded-lg hover:text-primary transition-all"
-            >
-              Left
-            </Link>
-          </DropdownMenuRadioItem>
+        <DropdownMenuRadioGroup value={tab} onValueChange={setTab}>
+          {sprints.map((sprint: any) => (
+            <DropdownMenuRadioItem value={sprint.name} key={sprint._id}>
+              <Link
+                href={
+                  sprint._id === currentSprintId
+                    ? `/project/${projectId}`
+                    : `/project/${projectId}/${sprint._id}`
+                }
+                className="w-full h-ful px-2 hover:px-4 py-3 rounded-lg hover:text-primary transition-all"
+              >
+                {sprint.name}
+                {currentSprintId === sprint._id && (
+                  <span className="text-primary"> (current)</span>
+                )}
+              </Link>
+            </DropdownMenuRadioItem>
+          ))}
         </DropdownMenuRadioGroup>
       </DropdownMenuContent>
     </DropdownMenu>

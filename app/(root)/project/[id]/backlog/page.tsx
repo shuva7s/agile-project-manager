@@ -26,7 +26,7 @@ async function BackLogAccessCheckAndRender({
     if (success) {
       return (
         <section>
-          <div className="flex justify-end max-w-5xl mx-auto">
+          <div className="flex justify-end max-w-7xl mx-auto">
             <Create_update_task type="create" projectId={projectId} />
           </div>
           <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

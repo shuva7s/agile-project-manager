@@ -35,8 +35,7 @@ const SprintSchema = new Schema({
   currentTime: { type: Number, default: 0 },
   hasStarted: { type: Boolean, default: false },
   hasEnded: { type: Boolean, default: false },
-
-  requirements: [{ type: Types.ObjectId, ref: "Task" }],
+  
   designing: [{ type: Types.ObjectId, ref: "Task" }],
   development: [{ type: Types.ObjectId, ref: "Task" }],
   testing: [{ type: Types.ObjectId, ref: "Task" }],

@@ -16,7 +16,7 @@ export async function createProject({
 }) {
   try {
     await connectToDatabase();
-    const newSprint = await Sprint.create({});
+    const newSprint = await Sprint.create({ name: "Sprint 1" });
 
     if (!newSprint) {
       return {

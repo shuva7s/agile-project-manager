@@ -187,8 +187,11 @@ export function AssignMember({
                 )}
               />
               <DialogClose asChild>
-                <Button className="w-full" type="submit">
-                  Confirm
+                <Button
+                  className="w-full"
+                  type={members.length === 0 ? "button" : "submit"}
+                >
+                  {members.length === 0 ? "Close" : "Assign"}
                 </Button>
               </DialogClose>
             </form>

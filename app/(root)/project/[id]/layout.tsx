@@ -22,7 +22,7 @@ export default async function ProjectLayout({
         // console.dir(project);
         return (
           <main className="wrap">
-            <section className="max-w-5xl mx-auto flex flex-col sm:flex-row justify-between">
+            <section className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between">
               <PageIntro
                 heading={project.name}
                 description={project.description}
@@ -37,7 +37,7 @@ export default async function ProjectLayout({
                 submissionCount={project.submissionCount}
               />
             </section>
-            <hr className="max-w-5xl mx-auto" />
+            <hr className="max-w-7xl mx-auto" />
             {children}
             <BackButton />
             <MobileNabvar forPc={true} />

@@ -170,6 +170,69 @@ export async function createTask({
   }
 }
 
+// export async function moveTaskToDesigning(projectId: string, taskId: string) {
+//   try {
+//     if (!Types.ObjectId.isValid(projectId) || !Types.ObjectId.isValid(taskId)) {
+//       return {
+//         success: false,
+//         message: "Invalid project or task ID",
+//       };
+//     }
+
+//     await connectToDatabase();
+
+//     const project = await Project.findById(projectId);
+//     if (!project) {
+//       return {
+//         success: false,
+//         message: "Project not found",
+//       };
+//     }
+
+//     const task = await Task.findById(taskId);
+//     if (!task) {
+//       return {
+//         success: false,
+//         message: "Task not found",
+//       };
+//     }
+
+//     // Step 2: Find the current sprint and add the task to its designing phase
+//     const currentSprint = await Sprint.findById(project.currentSprint);
+//     if (!currentSprint) {
+//       return {
+//         success: false,
+//         message: "Current sprint not found",
+//       };
+//     }
+
+//     if (currentSprint.hasEnded) {
+//       // create a new sprint
+//     }
+
+//     currentSprint.designing.push(task._id);
+
+//     task.status = "des";
+
+//     await task.save();
+//     await currentSprint.save();
+//     await project.save();
+
+//     revalidatePath(`/project/${projectId}`);
+//     revalidatePath(`/project/${projectId}/backlog`);
+
+//     return {
+//       success: true,
+//       message: "Task pushed to designing successfully",
+//     };
+//   } catch (error: any) {
+//     return {
+//       success: false,
+//       message: error.message || "Something went wrong",
+//     };
+//   }
+// }
+
 export async function moveTaskToDesigning(projectId: string, taskId: string) {
   try {
     if (!Types.ObjectId.isValid(projectId) || !Types.ObjectId.isValid(taskId)) {
@@ -197,29 +260,45 @@ export async function moveTaskToDesigning(projectId: string, taskId: string) {
       };
     }
 
-    // Step 1: Remove the task from the project's backlog
-    // project.backlog = project.backlog.filter(
-    //   (backlogTaskId: any) => !backlogTaskId.equals(taskId)
-    // );
-
-    // Step 2: Find the current sprint and add the task to its designing phase
-    const currentSprint = await Sprint.findById(project.currentSprint);
+    // Step 2: Find the current sprint
+    let currentSprint = await Sprint.findById(project.currentSprint);
     if (!currentSprint) {
       return {
         success: false,
         message: "Current sprint not found",
       };
     }
+
+    // Step 3: Check if the current sprint has ended
+    if (currentSprint.hasEnded) {
+      // Create a new sprint if the current one has ended
+      const newSprint = new Sprint({
+        number: project.sprints.length + 1,
+        name: `Sprint ${project.sprints.length + 1}`,
+        // hasStarted: false,
+      });
+
+      await newSprint.save();
+      project.currentSprint = newSprint._id;
+      project.sprints.push(newSprint._id);
+      await project.save();
+
+      // Assign the task to the designing phase of the new sprint
+      currentSprint = newSprint; // Update to the newly created sprint
+    }
+
+    // Add the task to the designing phase of the current sprint
     currentSprint.designing.push(task._id);
 
-    // Step 3: Update the task's status to "des" (designing)
+    // Update the task status to 'des' (designing)
     task.status = "des";
-
-    // Step 4: Save the updated documents
     await task.save();
+
+    // Save the sprint and project
     await currentSprint.save();
     await project.save();
 
+    // Revalidate paths to refresh any cached data
     revalidatePath(`/project/${projectId}`);
     revalidatePath(`/project/${projectId}/backlog`);
 
@@ -412,251 +491,6 @@ export async function addMembersToTask(
     };
   }
 }
-
-// export async function getMyTasks() {
-//   try {
-//     await connectToDatabase();
-
-//     const { userId, userMail, userName } = await userInfo();
-
-//     if (!userId || !userMail || !userName) {
-//       return {
-//         success: false,
-//         message: "User credentials not found",
-//       };
-//     }
-
-//     // Find the user with projects and tasks data
-//     const user = await User.findOne({
-//       clerkId: userId,
-//       email: userMail,
-//       username: userName,
-//     }).populate({
-//       path: "projects._id", // Populate the project details in user's projects
-//       select: "name", // Retrieve the project name
-//     });
-
-//     if (!user) {
-//       return {
-//         success: false,
-//         message: "User not found",
-//       };
-//     }
-
-//     // Find tasks assigned to the user based on role
-//     const tasks = await Task.find({
-//       $or: [
-//         { assignedDesigners: user._id },
-//         { assignedDevelopers: user._id },
-//         { assignedTesters: user._id },
-//         { assignedDeployers: user._id },
-//       ],
-//     });
-
-//     // Map through tasks and retrieve necessary information, including project details
-//     const taskDetails = await Promise.all(
-//       tasks.map(async (task: any) => {
-//         // Find the projectId by checking which user's project includes the current task
-//         const userProject = user.projects.find((project: any) =>
-//           project.tasks.some((userTaskId: any) => userTaskId.equals(task._id))
-//         );
-//         const projectId = userProject ? userProject._id._id : undefined;
-//         let assignedMembersField = "";
-//         if (task.status === "des") assignedMembersField = "assignedDesigners";
-//         else if (task.status === "dev")
-//           assignedMembersField = "assignedDevelopers";
-//         else if (task.status === "tes")
-//           assignedMembersField = "assignedTesters";
-//         else if (task.status === "dep")
-//           assignedMembersField = "assignedDeployers";
-//         await task.populate({
-//           path: assignedMembersField,
-//           select: "username photo",
-//         });
-
-//         const assignedMembers = task[assignedMembersField] || [];
-
-//         return {
-//           projectId,
-//           taskId: task._id,
-//           taskName: task.name,
-//           taskDescription: task.description,
-//           taskSubmitted: task.isSubmitted,
-//           priority: task.priority, // Include priority field here
-//           assignedMembers: assignedMembers.map((member: any) => ({
-//             username: member.username,
-//             photo: member.photo,
-//           })),
-//         };
-//       })
-//     );
-
-//     // console.dir(JSON.parse(JSON.stringify(taskDetails[0])));
-//     return {
-//       success: true,
-//       tasks: JSON.parse(JSON.stringify(taskDetails)),
-//     };
-//   } catch (error: any) {
-//     return {
-//       success: false,
-//       message: error.message || "An error occurred",
-//     };
-//   }
-// }
-
-// export async function gettingAllTasks() {
-//   try {
-//     await connectToDatabase();
-//     const { userId, userMail, userName } = await userInfo();
-//     if (!userId || !userMail || !userName) {
-//       console.log("User credentials not found");
-//     }
-//     const user = await User.findOne({
-//       clerkId: userId,
-//       email: userMail,
-//       username: userName,
-//     });
-
-//     if (!user) {
-//       console.log("user not found");
-//     }
-//     const allTasks = [];
-
-//     for (const project of user.projects) {
-//       let pr = await Project.findOne({
-//         _id: project._id,
-//       });
-
-//       let sprint = await Sprint.findOne({ _id: pr.currentSprint });
-
-//       let sprintRemainingTime = sprint.timeSpan - sprint.currentTime;
-
-//       for (const task of project.tasks) {
-//         let tk = await Task.findOne({ _id: task });
-//         tk.remainingTime = sprintRemainingTime;
-//         allTasks.push(tk);
-//       }
-//     }
-
-//     console.dir(JSON.parse(JSON.stringify(allTasks)));
-//   } catch (error: any) {
-//     return {
-//       success: false,
-//       message: error.message || "An error occurred",
-//     };
-//   }
-// }
-
-// export async function getMyTasks() {
-//   try {
-//     await connectToDatabase();
-
-//     const { userId, userMail, userName } = await userInfo();
-
-//     if (!userId || !userMail || !userName) {
-//       return {
-//         success: false,
-//         message: "User credentials not found",
-//       };
-//     }
-
-//     const user = await User.findOne({
-//       clerkId: userId,
-//       email: userMail,
-//       username: userName,
-//     }).populate({
-//       path: "projects._id",
-//       select: "name currentSprint tasks",
-//       populate: {
-//         path: "currentSprint",
-//         model: "Sprint",
-//         select: "timeSpan currentTime hasStarted",
-//       },
-//     });
-
-//     if (!user) {
-//       return {
-//         success: false,
-//         message: "User not found",
-//       };
-//     }
-
-//     const tasks = await Task.find({
-//       $or: [
-//         { assignedDesigners: user._id },
-//         { assignedDevelopers: user._id },
-//         { assignedTesters: user._id },
-//         { assignedDeployers: user._id },
-//       ],
-//     });
-
-//     const taskDetails = await Promise.all(
-//       tasks.map(async (task: any) => {
-//         const userProject = user.projects.find((project: any) =>
-//           project.tasks.some((userTaskId: any) => userTaskId.equals(task._id))
-//         );
-//         const projectId = userProject ? userProject._id._id : undefined;
-//         const currentSprint = userProject
-//           ? userProject._id.currentSprint
-//           : null;
-
-//         let remainingDays = null;
-//         if (currentSprint && currentSprint.hasStarted) {
-//           if (
-//             currentSprint.timeSpan !== undefined &&
-//             currentSprint.currentTime !== undefined
-//           ) {
-//             remainingDays = Math.max(
-//               0,
-//               currentSprint.timeSpan - currentSprint.currentTime
-//             );
-//           }
-//         }
-
-//         let assignedMembersField = "";
-//         if (task.status === "des") assignedMembersField = "assignedDesigners";
-//         else if (task.status === "dev")
-//           assignedMembersField = "assignedDevelopers";
-//         else if (task.status === "tes")
-//           assignedMembersField = "assignedTesters";
-//         else if (task.status === "dep")
-//           assignedMembersField = "assignedDeployers";
-
-//         await task.populate({
-//           path: assignedMembersField,
-//           select: "username photo",
-//         });
-
-//         const assignedMembers = task[assignedMembersField] || [];
-
-//         return {
-//           projectId,
-//           taskId: task._id,
-//           taskName: task.name,
-//           taskDescription: task.description,
-//           taskSubmitted: task.isSubmitted,
-//           priority: task.priority,
-//           remainingDays,
-//           errorNote: task.errorNote,
-//           assignedMembers: assignedMembers.map((member: any) => ({
-//             username: member.username,
-//             photo: member.photo,
-//           })),
-//         };
-//       })
-//     );
-
-//     return {
-//       success: true,
-//       tasks: JSON.parse(JSON.stringify(taskDetails)),
-//     };
-//   } catch (error: any) {
-//     return {
-//       success: false,
-//       message: error.message || "An error occurred",
-//     };
-//   }
-// }
 
 export async function getMyTasks() {
   try {

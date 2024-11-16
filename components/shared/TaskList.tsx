@@ -44,9 +44,9 @@ const TaskList = ({
                         : status === "tes"
                         ? task.assignedTesters
                         : task.assignedDeployers;
-
                     return (
-                      task.status === status && (
+                      task.status === status &&
+                      assignedArray.length > 0 && (
                         <div
                           className="flex flex-row items-center -space-x-4"
                           key={status}
@@ -55,18 +55,15 @@ const TaskList = ({
                             <Avatar key={member._id} className="w-9 h-9">
                               <AvatarImage src={member.photo} />
                               <AvatarFallback>
-                                <div className="w-8 h-8 rounded-full bg-primary/50" />
+                                <div className="w-9 h-9 rounded-full bg-primary/50" />
                               </AvatarFallback>
                             </Avatar>
                           ))}
-                          {assignedArray.length > 3 && (
-                            <span className="text-muted-foreground">...</span>
-                          )}
                         </div>
                       )
                     );
                   })}
-                  {isAdmin && task.status !== "com" && (
+                  {isAdmin && task.status !== "com" && !task.isSubmitted && (
                     <AssignMember projectId={projectId} taskId={task._id} />
                   )}
                 </div>
