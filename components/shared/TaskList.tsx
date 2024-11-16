@@ -1,7 +1,6 @@
 import { AccordionContent } from "../ui/accordion";
 import {
   Card,
-  CardContent,
   CardDescription,
   CardFooter,
   CardHeader,

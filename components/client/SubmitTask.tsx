@@ -1,6 +1,5 @@
 "use client";
 import { Button } from "../ui/button";
-import { SquareCheckBig } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -12,7 +11,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { TextSearch } from "lucide-react";
 import { submitTaskFunction } from "@/lib/actions/task.actions";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";

@@ -7,13 +7,11 @@ import {
   DialogClose,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "../ui/input";
-import { Label } from "../ui/label";
 import {
   Form,
   FormControl,

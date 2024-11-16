@@ -3,7 +3,6 @@ import { checkUserIsAdminAndReturnJoinRequests } from "@/lib/actions/project.act
 import { Suspense } from "react";
 import {
   Card,
-  CardContent,
   CardDescription,
   CardFooter,
   CardHeader,
