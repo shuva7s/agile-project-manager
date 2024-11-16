@@ -21,7 +21,7 @@ async function MembersRenderer({ projectId }: { projectId: string }) {
     if (success) {
       return (
         <section className="mt-8">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {members.length > 0 ? (
               members.map((member: any) => (
                 <Card key={member.username}>
@@ -87,7 +87,7 @@ export default function ProjectMembersPage({
 }) {
   return (
     <>
-      <div className="max-w-5xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         <div className="text-xl my-8 ">
           <p className="text-primary font-semibold">Members</p>
         </div>

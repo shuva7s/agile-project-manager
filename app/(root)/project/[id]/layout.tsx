@@ -46,14 +46,14 @@ export default async function ProjectLayout({
       } else {
         return (
           <main>
-            <section className="max-w-5xl mx-auto flex flex-col sm:flex-row justify-between">
+            <section className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between">
               <PageIntro
                 heading={project!.name}
                 description={project!.description}
               />
             </section>
 
-            <section className="max-w-5xl mx-auto mt-4 min-h-[75vh] flex justify-center items-center">
+            <section className="max-w-7xl mx-auto mt-4 min-h-[75vh] flex justify-center items-center">
               {canSendJoinReq ? (
                 <SendJoinReqButton projectId={params.id} />
               ) : (

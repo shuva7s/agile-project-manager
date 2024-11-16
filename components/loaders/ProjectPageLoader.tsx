@@ -3,7 +3,7 @@ import { Skeleton } from "../ui/skeleton";
 const ProjectPageLoader = () => {
   return (
     <>
-      <section className="max-w-5xl mx-auto flex flex-col sm:flex-row justify-between">
+      <section className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between">
         <div className="mt-4">
           <div className="flex items-center gap-2">
             <Skeleton className="w-8 h-8 bg-primary/30 rounded-2xl" />

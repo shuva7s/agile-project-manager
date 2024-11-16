@@ -124,7 +124,7 @@ const SubmissionsPage = ({ params }: { params: { id: string } }) => {
   return (
     <>
       <div className="max-w-7xl mx-auto">
-        <div className="my-8 max-w-5xl mx-auto text-center">
+        <div className="my-8 max-w-7xl mx-auto text-center">
           <h2 className="text-primary text-xl font-semibold">Submissions</h2>
           <p className="text-muted-foreground">
             View and manage all submissions here.
