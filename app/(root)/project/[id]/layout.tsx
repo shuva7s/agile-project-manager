@@ -68,14 +68,14 @@ export default async function ProjectLayout({
     } else {
       return (
         <main>
-          <ErrorDiv text={message} />;
+          <ErrorDiv text={message} />
         </main>
       );
     }
   } catch (error: any) {
     return (
       <main>
-        <ErrorDiv text={error.message} />;
+        <ErrorDiv text={error.message} />
       </main>
     );
   }

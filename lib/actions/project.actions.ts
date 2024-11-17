@@ -245,99 +245,6 @@ export async function getProjects(getHosted = false) {
   }
 }
 
-// export async function checkUserAccessAndReturnProjectData(projectId: string) {
-//   try {
-//     if (!Types.ObjectId.isValid(projectId)) {
-//       return {
-//         success: false,
-//         message: "Project not found",
-//       };
-//     }
-
-//     const { userName, userId, userMail } = await userInfo();
-
-//     if (!userName || !userId || !userMail) {
-//       return {
-//         success: false,
-//         message: "User credentials not found",
-//       };
-//     }
-
-//     await connectToDatabase();
-
-//     const user = await User.findOne({
-//       clerkId: userId,
-//       email: userMail,
-//       username: userName,
-//     });
-
-//     if (!user) {
-//       return {
-//         success: false,
-//         message: "User not found",
-//       };
-//     }
-
-//     const project = await Project.findById(
-//       projectId,
-//       "name description members joinRequests _id backlog createdAt"
-//     );
-
-//     if (!project) {
-//       return {
-//         success: false,
-//         message: "Project not found",
-//       };
-//     }
-
-//     const member = project.members.find((member: any) =>
-//       member._id.equals(user._id)
-//     );
-//     const isMember = Boolean(member);
-//     const isAdmin = isMember && member.role === "admin";
-
-//     const hasRequestedJoin = project.joinRequests.some((req: any) =>
-//       req.equals(user._id)
-//     );
-//     const canSendJoinReq = !isMember && !hasRequestedJoin;
-
-//     if (isMember) {
-//       let projectData = {
-//         _id: project._id,
-//         name: project.name,
-//         description: project.description,
-//         memberCount: project.members.length,
-//         joinRequestCount: project.joinRequests.length,
-//         backlogTaskCount: project.backlog.length,
-//       };
-
-//       return {
-//         success: true,
-//         project: projectData,
-//         isAdmin,
-//         isMember,
-//         canSendJoinReq,
-//       };
-//     } else {
-//       let projectData = {
-//         _id: project._id,
-//         name: project.name,
-//         description: project.description,
-//       };
-//       return {
-//         success: true,
-//         project: projectData,
-//         canSendJoinReq,
-//       };
-//     }
-//   } catch (error: any) {
-//     return {
-//       success: false,
-//       message: error.message,
-//     };
-//   }
-// }
-
 export async function checkUserAccessAndReturnProjectData(projectId: string) {
   try {
     if (!Types.ObjectId.isValid(projectId)) {
@@ -780,6 +687,64 @@ export async function removeMemberFromProject(
     return {
       success: false,
       message: error.message || "An unexpected error occurred",
+    };
+  }
+}
+export async function checkUserIsAdmin(projectId: string) {
+  try {
+    if (!Types.ObjectId.isValid(projectId)) {
+      return {
+        isUserProjectAdmin: false,
+        message: "Invalid project ID",
+      };
+    }
+    const { userName, userId, userMail } = await userInfo();
+
+    if (!userName || !userId || !userMail) {
+      return {
+        isUserProjectAdmin: false,
+        message: "User credentials not found",
+      };
+    }
+
+    await connectToDatabase(); // Ensure the database connection is established
+
+    const user = await User.findOne({
+      clerkId: userId,
+      email: userMail,
+      username: userName,
+    });
+
+    if (!user) {
+      return {
+        isUserProjectAdmin: false,
+        message: "User not found",
+      };
+    }
+
+    // Find the project and check if the current user is an admin
+    const project = await Project.findById(projectId);
+    if (!project) {
+      return {
+        isUserProjectAdmin: false,
+        message: "Project not found",
+      };
+    }
+
+    const isAdmin = project.members.some(
+      (member: any) => member._id.equals(user._id) && member.role === "admin"
+    );
+
+    return {
+      isUserProjectAdmin: isAdmin,
+      message: isAdmin
+        ? "You are an admin of this project"
+        : "You are not an admin of this project",
+    };
+  } catch (error: any) {
+    return {
+      isUserProjectAdmin: false,
+      message: error.message || "An error occurred while checking admin status",
     };
   }
 }

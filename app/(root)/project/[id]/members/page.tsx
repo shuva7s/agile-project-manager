@@ -12,13 +12,15 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import RemoveMember from "@/components/client/RemoveMember";
 import JoinReqsLoader from "@/components/loaders/JoinReqsLoader";
+import { userInfo } from "@/lib/actions/utility.actions";
+import { Span } from "next/dist/trace";
 
 async function MembersRenderer({ projectId }: { projectId: string }) {
   try {
     const { success, message, members, isAdmin } =
       await checkUserIsAdminAndReturnMembers(projectId);
-
-    if (success) {
+    const { userName } = await userInfo();
+    if (success && userName) {
       return (
         <section className="mt-8">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -32,9 +34,15 @@ async function MembersRenderer({ projectId }: { projectId: string }) {
                     </Avatar>
                     <div>
                       <CardTitle className="text-xl text-primary font-semibold tracking-normal">
-                        {member.firstName !== "" && member.lastName !== ""
-                          ? `${member.firstName} ${member.lastName}`
-                          : member.username}
+                        {member.username === userName ? (
+                          "You"
+                        ) : (
+                          <span>
+                            {member.firstName !== "" && member.lastName !== ""
+                              ? `${member.firstName} ${member.lastName}`
+                              : member.username}
+                          </span>
+                        )}
                       </CardTitle>
                       <CardDescription className="tracking-normal mt-0.5">
                         {member.email}

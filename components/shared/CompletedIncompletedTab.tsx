@@ -37,7 +37,7 @@ const CompletedIncompletedTab = ({
               {isCompleted ? (
                 <Accordion type="single" collapsible>
                   <AccordionItem value="item-1">
-                    <AccordionTrigger>Contributers</AccordionTrigger>
+                    <AccordionTrigger>Contributors</AccordionTrigger>
                     <AccordionContent className="px-4 pb-6">
                       <div>
                         <h4 className="text-md font-semibold my-4 text-muted-foreground">
@@ -184,7 +184,7 @@ const CompletedIncompletedTab = ({
                 </Accordion>
               ) : (
                 <div className="w-full flex justify-end">
-                  <Badge variant="outline" className="p-2">
+                  <Badge variant="destructive" className="p-2">
                     {task.status === "designing" && "Designing"}
                     {task.status === "development" && "Development"}
                     {task.status === "testing" && "Tasting"}
@@ -195,16 +195,15 @@ const CompletedIncompletedTab = ({
             </CardContent>
             {!isCompleted && (
               <CardFooter>
-                <Accordion type="single" collapsible>
+                <Accordion type="single" collapsible className="w-full">
                   <AccordionItem value="item-1">
-                    <AccordionTrigger>Contributers</AccordionTrigger>
-                    <AccordionContent className="px-4 pb-6">
-                      <h4 className="text-md font-semibold my-4 text-muted-foreground">
-                        {task.status === "designing" && "Designers"}
-                        {task.status === "development" && "Developers"}
-                        {task.status === "testing" && "Testers"}
-                        {task.status === "deployment" && "Deployers"}
-                      </h4>
+                    <AccordionTrigger>
+                      {task.status === "designing" && "Designers"}
+                      {task.status === "development" && "Developers"}
+                      {task.status === "testing" && "Testers"}
+                      {task.status === "deployment" && "Deployers"}
+                    </AccordionTrigger>
+                    <AccordionContent className="px-4 py-6">
                       <div className="flex flex-col">
                         {task.members.map((member: any) => (
                           <div

@@ -275,6 +275,7 @@ export async function moveTaskToDesigning(projectId: string, taskId: string) {
       const newSprint = new Sprint({
         number: project.sprints.length + 1,
         name: `Sprint ${project.sprints.length + 1}`,
+        submissions: currentSprint.submissions || [],
         // hasStarted: false,
       });
 
