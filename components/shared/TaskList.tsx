@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/card";
 import Weitage from "./Weitage";
 import { AssignMember } from "../client/AssignMember";
-import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import MembersAndRemove from "../client/MembersAndRemove";
 
 const TaskList = ({
   isAdmin = false,
@@ -46,24 +46,24 @@ const TaskList = ({
                     return (
                       task.status === status &&
                       assignedArray.length > 0 && (
-                        <div
-                          className="flex flex-row items-center -space-x-4"
-                          key={status}
-                        >
-                          {assignedArray.slice(0, 3).map((member: any) => (
-                            <Avatar key={member._id} className="w-9 h-9">
-                              <AvatarImage src={member.photo} />
-                              <AvatarFallback>
-                                <div className="w-9 h-9 rounded-full bg-primary/50" />
-                              </AvatarFallback>
-                            </Avatar>
-                          ))}
-                        </div>
+                        <MembersAndRemove
+                          key={status} // Add a unique key here for each "MembersAndRemove"
+                          isAdmin={isAdmin}
+                          taskSubmitted={task.isSubmitted}
+                          projectId={projectId}
+                          taskId={task._id}
+                          assignedPeople={assignedArray}
+                        />
                       )
                     );
                   })}
+
                   {isAdmin && task.status !== "com" && !task.isSubmitted && (
-                    <AssignMember projectId={projectId} taskId={task._id} />
+                    <AssignMember
+                      key="assign"
+                      projectId={projectId}
+                      taskId={task._id}
+                    />
                   )}
                 </div>
                 <div className="flex items-center gap-1.5 justify-center">

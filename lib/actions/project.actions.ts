@@ -5,8 +5,8 @@ import Project from "../database/models/project.model";
 import User from "../database/models/user.model";
 import { connectToDatabase } from "../database/mongoose";
 import { userInfo } from "./utility.actions";
-import { Types } from "mongoose";
-import { Sprint } from "../database/models/sprint.model";
+import mongoose, { Types } from "mongoose";
+import { Sprint, Task } from "../database/models/sprint.model";
 export async function createProject({
   projectName,
   projectDescription,
@@ -94,9 +94,99 @@ export async function createProject({
   }
 }
 
-export async function updateProject({}) {}
+export async function updateProject({
+  projectId,
+  projectName,
+  projectDescription,
+}: {
+  projectId: string;
+  projectName: string;
+  projectDescription: string;
+}) {
+  try {
+    await connectToDatabase();
 
-export async function deleteProject({}) {}
+    // Find the project by ID
+    const existingProject = await Project.findById(projectId);
+    if (!existingProject) {
+      return {
+        success: false,
+        message: "Project not found",
+      };
+    }
+
+    // Update the project details
+    existingProject.name = projectName;
+    existingProject.description = projectDescription;
+
+    // Save the updated project
+    await existingProject.save();
+
+    // Revalidate the path if required
+    revalidatePath("/");
+    revalidatePath(`/projects/${projectId}`);
+
+    return {
+      success: true,
+      message: "Project updated successfully",
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      message: error.message,
+    };
+  }
+}
+
+export const deleteProject = async (projectId: string) => {
+  if (!mongoose.Types.ObjectId.isValid(projectId)) {
+    return {
+      success: false,
+      message: "Invalid project ID",
+    };
+  }
+
+  try {
+    // Step 1: Find the project to ensure it exists
+    const project = await Project.findById(projectId);
+    if (!project) {
+      return {
+        success: false,
+        message: "Project not found",
+      };
+    }
+
+    // Step 2: Delete all sprints associated with the project
+    await Sprint.deleteMany({ _id: { $in: project.sprints } });
+
+    // Step 3: Delete all tasks in the project's backlog
+    await Task.deleteMany({ _id: { $in: project.backlog } });
+
+    // Step 4: Remove the project's ID and associated tasks from all users' `projects` array
+    await User.updateMany(
+      { "projects._id": projectId },
+      {
+        $pull: {
+          projects: { _id: projectId }, // Remove the specific project object
+        },
+      }
+    );
+
+    // Step 5: Delete the project itself
+    await Project.findByIdAndDelete(projectId);
+
+    return {
+      success: true,
+      message: "Project and all associated data deleted successfully",
+    };
+  } catch (error: any) {
+    console.error("Error deleting project:", error);
+    return {
+      success: false,
+      message: error.message || "An error occurred while deleting the project",
+    };
+  }
+};
 
 // export async function getProjects(getHosted = false) {
 //   try {
@@ -623,6 +713,112 @@ export async function checkUserIsAdminAndReturnMembers(projectId: string) {
   }
 }
 
+// export async function removeMemberFromProject(
+//   projectId: string,
+//   memberIdToRemove: string
+// ) {
+//   try {
+//     if (
+//       !Types.ObjectId.isValid(projectId) ||
+//       !Types.ObjectId.isValid(memberIdToRemove)
+//     ) {
+//       return {
+//         success: false,
+//         message: "Invalid project or user ID",
+//       };
+//     }
+
+//     await connectToDatabase();
+
+//     // Find the user to remove
+//     const user = await User.findById(memberIdToRemove);
+//     if (!user) {
+//       return {
+//         success: false,
+//         message: "User not found",
+//       };
+//     }
+
+//     // Check if the project exists in the user's project list
+//     const userProject = user.projects.find(
+//       (project: any) => project._id.toString() === projectId
+//     );
+
+//     if (!userProject) {
+//       return {
+//         success: false,
+//         message: "User is not a member of this project",
+//       };
+//     }
+//     // Find the project
+//     const project = await Project.findById(projectId);
+//     if (!project) {
+//       return {
+//         success: false,
+//         message: "Project not found",
+//       };
+//     }
+
+//     const taskIds = userProject.tasks;
+
+//     if (taskIds.length === 0) {
+//       return {
+//         success: false,
+//         message: "User has no tasks to remove",
+//       };
+//     }
+//     for (const taskId of taskIds) {
+//       const memberIdObject = new Types.ObjectId(memberIdToRemove);
+
+//       const task = await Task.findById(taskId);
+//       if (task) {
+//         if (task.status === "des") {
+//           task.assignedDesigners = task.assignedDesigners.filter(
+//             (id: any) => !id.equals(memberIdToRemove)
+//           );
+//         } else if (task.status === "dev") {
+//           task.assignedDevelopers = task.assignedDevelopers.filter(
+//             (id: any) => !id.equals(memberIdToRemove)
+//           );
+//         } else if (task.status === "tes") {
+//           task.assignedTesters = task.assignedTesters.filter(
+//             (id: any) => !id.equals(memberIdToRemove)
+//           );
+//         } else if (task.status === "dep") {
+//           task.assignedDeployers = task.assignedDeployers.filter(
+//             (id: any) => !id.equals(memberIdToRemove)
+//           );
+//         }
+//         await task.save();
+//       }
+//     }
+
+//     project.members = project.members.filter(
+//       (member: any) => !member._id.equals(memberIdToRemove)
+//     );
+//     user.projects = user.projects.filter(
+//       (projectEntry: any) => !projectEntry._id.equals(projectId)
+//     );
+
+//     await project.save();
+//     await user.save();
+//     revalidatePath(`/`);
+//     revalidatePath(`/project/${projectId}`);
+//     revalidatePath(`/project/${projectId}/members`);
+
+//     return {
+//       success: true,
+//       message: "Member successfully removed from project and tasks",
+//     };
+//   } catch (error: any) {
+//     console.error("Error removing member from project:", error);
+//     return {
+//       success: false,
+//       message: error.message || "An unexpected error occurred",
+//     };
+//   }
+// }
+
 export async function removeMemberFromProject(
   projectId: string,
   memberIdToRemove: string
@@ -640,6 +836,27 @@ export async function removeMemberFromProject(
 
     await connectToDatabase();
 
+    // Find the user to remove
+    const user = await User.findById(memberIdToRemove);
+    if (!user) {
+      return {
+        success: false,
+        message: "User not found",
+      };
+    }
+
+    // Check if the project exists in the user's project list
+    const userProject = user.projects.find(
+      (project: any) => project._id.toString() === projectId
+    );
+
+    if (!userProject) {
+      return {
+        success: false,
+        message: "User is not a member of this project",
+      };
+    }
+
     // Find the project
     const project = await Project.findById(projectId);
     if (!project) {
@@ -649,28 +866,50 @@ export async function removeMemberFromProject(
       };
     }
 
-    // Find the user
-    const user = await User.findById(memberIdToRemove);
-    if (!user) {
+    const taskIds = userProject.tasks;
+
+    if (taskIds.length === 0) {
       return {
         success: false,
-        message: "User not found",
+        message: "User has no tasks to remove",
       };
     }
 
-    // Remove the member from the project's members array
+    // Fetch all tasks associated with the user's tasks in one query
+    const tasks = await Task.find({ _id: { $in: taskIds } });
+
+    tasks.forEach((task) => {
+      if (task.status === "des") {
+        task.assignedDesigners = task.assignedDesigners.filter(
+          (id: any) => !id.equals(memberIdToRemove)
+        );
+      } else if (task.status === "dev") {
+        task.assignedDevelopers = task.assignedDevelopers.filter(
+          (id: any) => !id.equals(memberIdToRemove)
+        );
+      } else if (task.status === "tes") {
+        task.assignedTesters = task.assignedTesters.filter(
+          (id: any) => !id.equals(memberIdToRemove)
+        );
+      } else if (task.status === "dep") {
+        task.assignedDeployers = task.assignedDeployers.filter(
+          (id: any) => !id.equals(memberIdToRemove)
+        );
+      }
+    });
+
+    // Save all tasks in parallel
+    await Promise.all(tasks.map((task) => task.save()));
+
+    // Remove user from project members and project from user's projects
     project.members = project.members.filter(
       (member: any) => !member._id.equals(memberIdToRemove)
     );
-
-    // Remove the project and tasks from the user's `projects` array
     user.projects = user.projects.filter(
       (projectEntry: any) => !projectEntry._id.equals(projectId)
     );
 
-    // TODO: Remove member from tasks in the project if assigned
-    // You might need additional logic here to remove the user from any tasks they were assigned to within the project
-
+    // Save the updated project and user
     await project.save();
     await user.save();
 
@@ -681,15 +920,17 @@ export async function removeMemberFromProject(
 
     return {
       success: true,
-      message: "Member removed successfully",
+      message: "Member successfully removed from project and tasks",
     };
   } catch (error: any) {
+    console.error("Error removing member from project:", error);
     return {
       success: false,
       message: error.message || "An unexpected error occurred",
     };
   }
 }
+
 export async function checkUserIsAdmin(projectId: string) {
   try {
     if (!Types.ObjectId.isValid(projectId)) {
@@ -735,11 +976,18 @@ export async function checkUserIsAdmin(projectId: string) {
       (member: any) => member._id.equals(user._id) && member.role === "admin"
     );
 
+    if (!isAdmin) {
+      return {
+        isUserProjectAdmin: false,
+        message: "You are not an admin of this project",
+      };
+    }
+
     return {
-      isUserProjectAdmin: isAdmin,
-      message: isAdmin
-        ? "You are an admin of this project"
-        : "You are not an admin of this project",
+      isUserProjectAdmin: true,
+      name: project.name,
+      description: project.description,
+      message: "You are an admin of this project",
     };
   } catch (error: any) {
     return {

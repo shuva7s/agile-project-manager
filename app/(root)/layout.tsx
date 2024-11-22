@@ -7,7 +7,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <div className="flex flex-row items-start mb-16">
+    <div className="flex flex-row items-start">
       {children}
       <SignedIn>
         <MobileNabvar />

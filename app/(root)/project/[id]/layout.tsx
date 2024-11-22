@@ -21,7 +21,7 @@ export default async function ProjectLayout({
       if (!canSendJoinReq && (isMember || isAdmin)) {
         // console.dir(project);
         return (
-          <main className="wrap">
+          <main className="wrap pb-16">
             <section className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between">
               <PageIntro
                 heading={project.name}

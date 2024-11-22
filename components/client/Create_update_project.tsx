@@ -23,14 +23,16 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Input } from "../ui/input";
 import { useState } from "react";
-import { createProject } from "@/lib/actions/project.actions";
+import { createProject, updateProject } from "@/lib/actions/project.actions";
 import { useToast } from "@/hooks/use-toast";
-import { Loader } from "lucide-react";
+import { Loader, Pencil } from "lucide-react";
+import { useEffect } from "react";
 
 const formSchema = z.object({
   projectName: z.string().min(2).max(50),
   projectDescription: z.string().min(2).max(400),
 });
+
 const Create_update_project = ({
   type,
   id,
@@ -47,12 +49,19 @@ const Create_update_project = ({
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-
     defaultValues: {
       projectName: name,
       projectDescription: description,
     },
   });
+
+  useEffect(() => {
+    if (type === "update") {
+      // Set form values when opening the update dialog
+      form.setValue("projectName", name);
+      form.setValue("projectDescription", description);
+    }
+  }, [type, name, description, form]); // Only run this when `name`, `description`, or `type` change
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     let res;
@@ -64,11 +73,13 @@ const Create_update_project = ({
           projectDescription: values.projectDescription,
         });
       } else if (type == "update" && id) {
-        //   res = await updateProject({
-        //     projectId: id,
-        //     projectName: values.projectName,
-        //     projectDescription: values.projectDescription,
-        //   });
+        res = await updateProject({
+          projectId: id,
+          projectName: values.projectName,
+          projectDescription: values.projectDescription,
+        });
+        form.setValue("projectName", values.projectName);
+        form.setValue("projectDescription", values.projectDescription);
       }
       setProcessing(false);
       if (res) {
@@ -97,22 +108,29 @@ const Create_update_project = ({
       });
     }
   }
+
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button
-          disabled={processing}
-          className="rounded-2xl w-full sm:w-fit py-6 sm:py-4 sm:mt-0"
-        >
-          {processing ? (
-            <div className="flex items-center flex-row gap-2">
-              <Loader className="animate-spin" />
-              Creating...
-            </div>
-          ) : (
-            "Create project"
-          )}
-        </Button>
+        {type === "create" ? (
+          <Button
+            disabled={processing}
+            className="rounded-2xl w-full sm:w-fit py-6 sm:py-4 sm:mt-0"
+          >
+            {processing ? (
+              <>
+                <Loader className="mr-2 animate-spin" />
+                <span>Creating</span>
+              </>
+            ) : (
+              "Create project"
+            )}
+          </Button>
+        ) : (
+          <Button disabled={processing} size="icon">
+            {processing ? <Loader className="animate-spin" /> : <Pencil />}
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px] rounded-none sm:rounded-2xl p-6 md:p-8 tracking-wide">
         <DialogHeader>
@@ -152,8 +170,12 @@ const Create_update_project = ({
               )}
             />
             <DialogClose asChild>
-              <Button className="w-full rounded-xl" type="submit">
-                Submit
+              <Button
+                className="w-full rounded-xl"
+                type="submit"
+                disabled={!form.formState.isDirty || processing} // Disable if form is not dirty or processing
+              >
+                {type === "create" ? "Create" : "Update"}
               </Button>
             </DialogClose>
           </form>

@@ -1,9 +1,4 @@
 "use client";
-
-import { useState } from "react";
-import { Button } from "../ui/button";
-import { endSprint } from "@/lib/actions/sprint.actions";
-import { useToast } from "@/hooks/use-toast";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,51 +10,56 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-
-const EndSprint = ({ projectId }: { projectId: string }) => {
-  const [processing, setProcessing] = useState(false);
-
+import { Button } from "../ui/button";
+import { Trash2 } from "lucide-react";
+import { deleteProject } from "@/lib/actions/project.actions";
+import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
+const DeleteProject = ({ projectId }: { projectId: string }) => {
+  const router = useRouter();
   const { toast } = useToast();
-
-  async function handleClick(projectId: string) {
+  async function handleDelete(projectId: string) {
     try {
-      setProcessing(true);
-      const { success, message } = await endSprint(projectId);
-
+      const { message, success } = await deleteProject(projectId);
       toast({
         title: success ? "Success" : "Error",
         description: message,
         variant: success ? "default" : "destructive",
       });
+
+      if (success) {
+        router.replace("/");
+      }
     } catch (error: any) {
       toast({
         title: "Error",
-        description: error.message || "Something went wrong",
+        description: error.message || "Failed to delete project",
         variant: "destructive",
       });
-    } finally {
-      setProcessing(false);
     }
   }
-
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button disabled={processing}>
-          {processing ? "Ending..." : "End sprint"}
+        <Button variant="destructive" size="icon">
+          <Trash2 />
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
           <AlertDialogDescription>
-            This action will end the sprint.
+            This action cannot be undone. This will permanently delete the
+            project and remove all related data from our servers.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={() => handleClick(projectId)}>
-            End sprint
+          <AlertDialogAction
+            onClick={() => handleDelete(projectId)}
+            className="bg-destructive hover:bg-destructive/90"
+          >
+            <Trash2 /> Delete
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
@@ -67,4 +67,4 @@ const EndSprint = ({ projectId }: { projectId: string }) => {
   );
 };
 
-export default EndSprint;
+export default DeleteProject;

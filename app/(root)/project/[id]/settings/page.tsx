@@ -1,7 +1,9 @@
+import AddDays from "@/components/client/AddDays";
+import Create_update_project from "@/components/client/Create_update_project";
+import DeleteProject from "@/components/client/DeleteProject";
 import ErrorDiv from "@/components/shared/ErrorDiv";
-import { Button } from "@/components/ui/button";
 import { checkUserIsAdmin } from "@/lib/actions/project.actions";
-import { CalendarPlus, Loader2 } from "lucide-react";
+import { Loader2, Pencil } from "lucide-react";
 import { Suspense } from "react";
 
 async function ProjectSettingsAccessCheckAndRender({
@@ -10,10 +12,26 @@ async function ProjectSettingsAccessCheckAndRender({
   projectId: string;
 }) {
   try {
-    const { isUserProjectAdmin, message } = await checkUserIsAdmin(projectId);
+    const { isUserProjectAdmin, message, name, description } =
+      await checkUserIsAdmin(projectId);
     if (isUserProjectAdmin) {
       return (
         <>
+          <div className="flex justify-between items-center flex-wrap">
+            <div>
+              <h3 className="text-lg font-semibold">Edit project info</h3>
+              <p className="text-sm text-muted-foreground">
+                Edit project name, description.
+              </p>
+            </div>
+            <Create_update_project
+              type="update"
+              id={projectId}
+              name={name}
+              description={description}
+            />
+          </div>
+          <hr />
           <div className="flex justify-between items-center flex-wrap">
             <div>
               <h3 className="text-lg font-semibold">Add days</h3>
@@ -21,11 +39,20 @@ async function ProjectSettingsAccessCheckAndRender({
                 Add additional days to current sprint.
               </p>
             </div>
-            <Button size="icon">
-              <CalendarPlus />
-            </Button>
+            <AddDays projectId={projectId} />
           </div>
           <hr />
+          <div className="flex justify-between items-center flex-wrap">
+            <div>
+              <h3 className="text-lg font-semibold text-destructive">
+                Delete project
+              </h3>
+              <p className="text-sm text-destructive/80">
+                Delete project permanently.
+              </p>
+            </div>
+            <DeleteProject projectId={projectId} />
+          </div>
         </>
       );
     } else {

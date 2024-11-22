@@ -13,7 +13,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import RemoveMember from "@/components/client/RemoveMember";
 import JoinReqsLoader from "@/components/loaders/JoinReqsLoader";
 import { userInfo } from "@/lib/actions/utility.actions";
-import { Span } from "next/dist/trace";
 
 async function MembersRenderer({ projectId }: { projectId: string }) {
   try {

@@ -8,235 +8,6 @@ import Project from "../database/models/project.model";
 import { Sprint, Task } from "../database/models/sprint.model";
 import { revalidatePath } from "next/cache";
 
-// export async function checkUserIsAdminAndReturnCurrentSprintData(
-//   projectId: string
-// ) {
-//   try {
-//     if (!Types.ObjectId.isValid(projectId)) {
-//       return {
-//         success: false,
-//         message: "Project not found",
-//       };
-//     }
-
-//     const { userName, userId, userMail } = await userInfo();
-
-//     if (!userName || !userId || !userMail) {
-//       return {
-//         success: false,
-//         message: "User not found",
-//       };
-//     }
-
-//     await connectToDatabase();
-
-//     const user = await User.findOne({
-//       clerkId: userId,
-//       email: userMail,
-//       username: userName,
-//     });
-
-//     if (!user) {
-//       return {
-//         success: false,
-//         message: "User not found",
-//       };
-//     }
-
-//     const project = await Project.findById(projectId).populate({
-//       path: "members._id",
-//     });
-
-//     if (!project) {
-//       return {
-//         success: false,
-//         message: "Project not found",
-//       };
-//     }
-
-//     const isAdmin = project.members.some(
-//       (member: any) => member._id.equals(user._id) && member.role === "admin"
-//     );
-
-//     if (!project.currentSprint) {
-//       return {
-//         success: false,
-//         message: "No current sprint available",
-//       };
-//     }
-
-//     const currentSprint = await Sprint.findById(project.currentSprint)
-//       .populate({
-//         path: "designing development testing deployment completed",
-//         populate: [
-//           {
-//             path: "assignedDesigners",
-//             select: "_id photo username",
-//           },
-//           {
-//             path: "assignedDevelopers",
-//             select: "_id photo username",
-//           },
-//           {
-//             path: "assignedTesters",
-//             select: "_id photo username",
-//           },
-//           {
-//             path: "assignedDeployers",
-//             select: "_id photo username",
-//           },
-//         ],
-//         model: "Task",
-//       })
-//       .select("-__v -submissions");
-
-//     // Calculate `canEnd` by checking completed tasks in the backlog
-//     const completedTasksCount = await Task.countDocuments({
-//       _id: { $in: project.backlog },
-//       status: "com",
-//     });
-
-//     const canEnd =
-//       project.backlog.length > 0 &&
-//       completedTasksCount === project.backlog.length;
-
-//     const sprints = await Sprint.find({ _id: { $in: project.sprints } })
-//       .select("_id name")
-//       .exec();
-
-//     return {
-//       success: true,
-//       isAdmin,
-//       currentSprintId: project.currentSprint.toString(),
-//       currentSprintData: JSON.parse(JSON.stringify(currentSprint)),
-//       canEnd,
-//       sprints: sprints.map((sprint) => ({
-//         _id: sprint._id.toString(),
-//         name: sprint.name.toString(),
-//       })),
-//     };
-//   } catch (error: any) {
-//     return {
-//       success: false,
-//       message: error.message || "Something went wrong",
-//     };
-//   }
-// }
-
-// export async function checkUserIsAdminAndReturnCurrentSprintData(
-//   projectId: string
-// ) {
-//   try {
-//     if (!Types.ObjectId.isValid(projectId)) {
-//       return {
-//         success: false,
-//         message: "Project not found",
-//       };
-//     }
-
-//     const { userName, userId, userMail } = await userInfo();
-
-//     if (!userName || !userId || !userMail) {
-//       return {
-//         success: false,
-//         message: "User not found",
-//       };
-//     }
-
-//     await connectToDatabase();
-
-//     const user = await User.findOne({
-//       clerkId: userId,
-//       email: userMail,
-//       username: userName,
-//     });
-
-//     if (!user) {
-//       return {
-//         success: false,
-//         message: "User not found",
-//       };
-//     }
-
-//     const project = await Project.findById(projectId).populate({
-//       path: "members._id",
-//     });
-
-//     if (!project) {
-//       return {
-//         success: false,
-//         message: "Project not found",
-//       };
-//     }
-
-//     const isAdmin = project.members.some(
-//       (member: any) => member._id.equals(user._id) && member.role === "admin"
-//     );
-
-//     if (!project.currentSprint) {
-//       return {
-//         success: false,
-//         message: "No current sprint available",
-//       };
-//     }
-
-//     const currentSprint = await Sprint.findById(project.currentSprint)
-//       .populate({
-//         path: "designing development testing deployment completed",
-//         populate: [
-//           {
-//             path: "assignedDesigners",
-//             select: "_id photo username",
-//           },
-//           {
-//             path: "assignedDevelopers",
-//             select: "_id photo username",
-//           },
-//           {
-//             path: "assignedTesters",
-//             select: "_id photo username",
-//           },
-//           {
-//             path: "assignedDeployers",
-//             select: "_id photo username",
-//           },
-//         ],
-//         model: "Task",
-//       })
-//       .select("-__v -submissions");
-
-//     // Check if all arrays (except completed) are empty and completed array has at least one task
-//     const canEnd =
-//       currentSprint &&
-//       currentSprint.designing.length === 0 &&
-//       currentSprint.development.length === 0 &&
-//       currentSprint.testing.length === 0 &&
-//       currentSprint.deployment.length === 0 &&
-//       currentSprint.completed.length >= 1;
-
-//     const sprints = await Sprint.find({ _id: { $in: project.sprints } })
-//       .select("_id name")
-//       .exec();
-
-//     return {
-//       success: true,
-//       isAdmin,
-//       currentSprintId: project.currentSprint.toString(),
-//       currentSprintData: JSON.parse(JSON.stringify(currentSprint)),
-//       canEnd,
-//       sprints: sprints.map((sprint) => ({
-//         _id: sprint._id.toString(),
-//         name: sprint.name.toString(),
-//       })),
-//     };
-//   } catch (error: any) {
-//     return {
-//       success: false,
-//       message: error.message || "Something went wrong",
-//     };
-//   }
-// }
-
 export async function checkUserIsAdminAndReturnCurrentSprintData(
   projectId: string
 ) {
@@ -752,6 +523,79 @@ export async function getSprintDataBySprintId(
       incompleteTasks,
     };
   } catch (error: any) {
+    return {
+      success: false,
+      message: error.message || "Something went wrong",
+    };
+  }
+}
+
+export async function addDaysToSprint(projectId: string, days: number) {
+  try {
+    if (!Types.ObjectId.isValid(projectId)) {
+      return {
+        success: false,
+        message: "Invalid project ID",
+      };
+    }
+
+    if (days < 1) {
+      return {
+        success: false,
+        message: "Number of days must be greater than 0",
+      };
+    }
+
+    await connectToDatabase();
+
+    const project = await Project.findById(projectId);
+    if (!project) {
+      return {
+        success: false,
+        message: "Project not found",
+      };
+    }
+
+    let currentSprint = await Sprint.findById(project.currentSprint);
+    if (!currentSprint) {
+      return {
+        success: false,
+        message: "Current sprint not found",
+      };
+    }
+
+    if (currentSprint.hasEnded) {
+      const newSprint = new Sprint({
+        number: project.sprints.length + 1,
+        name: `Sprint ${project.sprints.length + 1}`,
+        submissions: currentSprint.submissions || [],
+        timeSpan: 14, // Default time span for new sprint
+        currentTime: 0,
+        hasStarted: false,
+      });
+
+      await newSprint.save();
+      project.currentSprint = newSprint._id;
+      project.sprints.push(newSprint._id);
+      await project.save();
+
+      return {
+        success: true,
+        title: "New sprint created",
+        message: "Your last sprint ended. A new sprint has been created.",
+      };
+    }
+
+    currentSprint.timeSpan += days;
+    await currentSprint.save();
+
+    return {
+      success: true,
+      title: "Sprint extended",
+      message: `The current sprint has been extended by ${days} days.`,
+    };
+  } catch (error: any) {
+    console.error("Error in addDaysToSprint:", error);
     return {
       success: false,
       message: error.message || "Something went wrong",

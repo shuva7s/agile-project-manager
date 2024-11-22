@@ -32,10 +32,10 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { Input } from "../ui/input";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { Loader } from "lucide-react";
-import { createTask } from "@/lib/actions/task.actions";
+import { Loader, Pencil } from "lucide-react";
+import { createTask, updateTask } from "@/lib/actions/task.actions";
 
 const formSchema = z.object({
   taskName: z.string().min(2).max(50),
@@ -49,12 +49,14 @@ const Create_update_task = ({
   taskId,
   name = "",
   description = "",
+  priority,
 }: {
   type: "create" | "update";
   projectId: string;
   taskId?: string;
   name?: string;
   description?: string;
+  priority?: number;
 }) => {
   const [processing, setProcessing] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -65,9 +67,17 @@ const Create_update_task = ({
     defaultValues: {
       taskName: name,
       taskDescription: description,
-      weightage: 1,
+      weightage: priority || 1,
     },
   });
+
+  useEffect(() => {
+    if (type === "update") {
+      form.setValue("taskName", name);
+      form.setValue("taskDescription", description);
+      form.setValue("weightage", priority || 1);
+    }
+  }, [type, name, description, form]);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     let res;
@@ -81,7 +91,16 @@ const Create_update_task = ({
           weightage: values.weightage,
         });
       } else if (type === "update" && taskId) {
-        // res = await updateTask({});
+        res = await updateTask({
+          projectId,
+          taskId,
+          taskName: values.taskName,
+          taskDescription: values.taskDescription,
+          weightage: values.weightage,
+        });
+        form.setValue("taskName", values.taskName);
+        form.setValue("taskDescription", values.taskDescription);
+        form.setValue("weightage", values.weightage);
       }
       setProcessing(false);
       if (res) {
@@ -114,20 +133,26 @@ const Create_update_task = ({
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button
-          disabled={processing}
-          variant="secondary"
-          className="rounded-2xl w-full sm:w-fit py-6 sm:py-4 sm:mt-0"
-        >
-          {processing ? (
-            <div className="flex items-center flex-row gap-2">
-              <Loader className="animate-spin" />
-              {type === "create" ? "Creating..." : "Updating..."}
-            </div>
-          ) : (
-            `${type === "create" ? "Create" : "Update"} Task`
-          )}
-        </Button>
+        {type === "create" ? (
+          <Button
+            variant="secondary"
+            disabled={processing}
+            className="rounded-2xl w-full sm:w-fit py-6 sm:py-4 sm:mt-0"
+          >
+            {processing ? (
+              <>
+                <Loader className="mr-2 animate-spin" />
+                <span>Creating</span>
+              </>
+            ) : (
+              "Create task"
+            )}
+          </Button>
+        ) : (
+          <Button variant="outline" disabled={processing} size="icon">
+            {processing ? <Loader className="animate-spin" /> : <Pencil />}
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px] rounded-none sm:rounded-2xl p-6 md:p-8">
         <DialogHeader>
@@ -170,46 +195,6 @@ const Create_update_task = ({
                 </FormItem>
               )}
             />
-            {/* <FormField
-              control={form.control}
-              name="weightage"
-              render={({ field }) => (
-                <FormItem>
-                  <label
-                    htmlFor="weightage-dropdown"
-                    className="flex flex-col gap-2 cursor-pointer"
-                  >
-                    <FormLabel>Weightage</FormLabel>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button id="weightage-dropdown" variant="outline">
-                          {field.value || "Select weightage"}
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent className="w-56 p-1">
-                        <DropdownMenuRadioGroup
-                          value={String(field.value)}
-                          onValueChange={(value) =>
-                            field.onChange(Number(value))
-                          }
-                        >
-                          {[...Array(10)].map((_, i) => (
-                            <DropdownMenuRadioItem
-                              className="p-2 hover:pl-3 hover:text-primary transition-all"
-                              key={i + 1}
-                              value={String(i + 1)}
-                            >
-                              {i + 1}
-                            </DropdownMenuRadioItem>
-                          ))}
-                        </DropdownMenuRadioGroup>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </label>
-                  <FormMessage />
-                </FormItem>
-              )}
-            /> */}
             <FormField
               control={form.control}
               name="weightage"
@@ -259,8 +244,12 @@ const Create_update_task = ({
               )}
             />
             <DialogClose asChild>
-              <Button className="w-full rounded-xl" type="submit">
-                {type === "create" ? "Create" : "Update"} task
+              <Button
+                className="w-full rounded-xl"
+                type="submit"
+                disabled={!form.formState.isDirty || processing}
+              >
+                {type === "create" ? "Create" : "Update"}
               </Button>
             </DialogClose>
           </form>

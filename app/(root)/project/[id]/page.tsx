@@ -9,7 +9,6 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Button } from "@/components/ui/button";
 import { checkUserIsAdminAndReturnCurrentSprintData } from "@/lib/actions/sprint.actions";
 import { Clock, Loader2 } from "lucide-react";
 import { Suspense } from "react";
@@ -32,11 +31,6 @@ async function CheckUserIsAdminOrMemberAndRender({
     } = await checkUserIsAdminAndReturnCurrentSprintData(projectId);
 
     if (success) {
-      // console.log(currentSprintName);
-      // console.dir(sprints);
-      // console.dir(currentSprintData);
-
-      // console.log(canEnd);
       return (
         <>
           <section className="my-4 max-w-7xl mx-auto flex justify-between items-center gap-2">
@@ -46,7 +40,7 @@ async function CheckUserIsAdminOrMemberAndRender({
               currentSprintName={currentSprintName}
               sprints={sprints}
             />
-            {!currentSprintData.hasStarted && (
+            {!currentSprintData.hasStarted && isAdmin && (
               <StartSprint projectId={projectId} />
             )}
             {currentSprintData.hasStarted &&

@@ -3,7 +3,7 @@ import Image from "next/image";
 
 export default function JoinProjectPage() {
   return (
-    <main className="border-l page_border">
+    <main className="border-l page_border min-h-screen">
       <PageIntro
         heading="Join project"
         description="Join project created by others"

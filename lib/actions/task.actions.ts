@@ -170,7 +170,60 @@ export async function createTask({
   }
 }
 
-// export async function moveTaskToDesigning(projectId: string, taskId: string) {
+export async function updateTask({
+  projectId,
+  taskId,
+  taskName,
+  taskDescription,
+  weightage,
+}: {
+  projectId: string;
+  taskId: string;
+  taskName: string;
+  taskDescription: string;
+  weightage: number;
+}) {
+  try {
+    if (!Types.ObjectId.isValid(projectId) || !Types.ObjectId.isValid(taskId)) {
+      return {
+        success: false,
+        message: "Invalid project or task ID",
+      };
+    }
+    await connectToDatabase();
+
+    const task = await Task.findById(taskId);
+
+    if (!task) {
+      return {
+        success: false,
+        message: "Task not found",
+      };
+    }
+
+    task.name = taskName || task.name;
+    task.description = taskDescription || task.description;
+    task.priority = weightage || task.priority;
+
+    await task.save();
+
+    revalidatePath(`/project/${projectId}`);
+    revalidatePath(`/project/${projectId}/backlog`);
+    revalidatePath(`/tasks`);
+
+    return {
+      success: true,
+      message: "Task updated successfully",
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      message: error.message || "Something went wrong",
+    };
+  }
+}
+
+// export async function deleteTask(projectId: string, taskId: string) {
 //   try {
 //     if (!Types.ObjectId.isValid(projectId) || !Types.ObjectId.isValid(taskId)) {
 //       return {
@@ -178,17 +231,7 @@ export async function createTask({
 //         message: "Invalid project or task ID",
 //       };
 //     }
-
 //     await connectToDatabase();
-
-//     const project = await Project.findById(projectId);
-//     if (!project) {
-//       return {
-//         success: false,
-//         message: "Project not found",
-//       };
-//     }
-
 //     const task = await Task.findById(taskId);
 //     if (!task) {
 //       return {
@@ -196,42 +239,142 @@ export async function createTask({
 //         message: "Task not found",
 //       };
 //     }
-
-//     // Step 2: Find the current sprint and add the task to its designing phase
-//     const currentSprint = await Sprint.findById(project.currentSprint);
-//     if (!currentSprint) {
-//       return {
-//         success: false,
-//         message: "Current sprint not found",
-//       };
+//     let assignedMembers = [];
+//     if (task.status === "des") {
+//       assignedMembers = task.assignedDesigners;
+//     } else if (task.status === "dev") {
+//       assignedMembers = task.assignedDevelopers;
+//     } else if (task.status === "tes") {
+//       assignedMembers = task.assignedTesters;
+//     } else if (task.status === "dep") {
+//       assignedMembers = task.assignedDeployers;
 //     }
-
-//     if (currentSprint.hasEnded) {
-//       // create a new sprint
+//     const members = await User.find({ _id: { $in: assignedMembers } });
+//     members.forEach((member) => {
+//       const project = member.projects.find(
+//         (project: any) => project._id.toString() === projectId
+//       );
+//       if (project) {
+//         project.tasks = project.tasks.filter(
+//           (t: any) => t.toString() !== taskId
+//         );
+//       }
+//     });
+//     await Promise.all(members.map((member) => member.save()));
+//     const project = await Project.findById(projectId);
+//     if (project) {
+//       project.backlog = project.backlog.filter(
+//         (t: any) => t.toString() !== taskId
+//       );
+//       await project.save();
 //     }
-
-//     currentSprint.designing.push(task._id);
-
-//     task.status = "des";
-
-//     await task.save();
-//     await currentSprint.save();
-//     await project.save();
-
-//     revalidatePath(`/project/${projectId}`);
-//     revalidatePath(`/project/${projectId}/backlog`);
-
+//     await Task.findByIdAndDelete(taskId);
 //     return {
 //       success: true,
-//       message: "Task pushed to designing successfully",
+//       message: "Task successfully deleted",
 //     };
 //   } catch (error: any) {
 //     return {
 //       success: false,
-//       message: error.message || "Something went wrong",
+//       message: error.message || "An unexpected error occurred",
 //     };
 //   }
 // }
+
+export async function deleteTask(projectId: string, taskId: string) {
+  try {
+    // 1. Validate IDs
+    if (!Types.ObjectId.isValid(projectId) || !Types.ObjectId.isValid(taskId)) {
+      return {
+        success: false,
+        message: "Invalid project or task ID",
+      };
+    }
+
+    await connectToDatabase();
+
+    // 2. Find the task
+    const task = await Task.findById(taskId);
+    if (!task) {
+      return {
+        success: false,
+        message: "Task not found",
+      };
+    }
+
+    // 3. Determine assigned members based on task status
+    let assignedMembers = [];
+    if (task.status === "des") {
+      assignedMembers = task.assignedDesigners;
+    } else if (task.status === "dev") {
+      assignedMembers = task.assignedDevelopers;
+    } else if (task.status === "tes") {
+      assignedMembers = task.assignedTesters;
+    } else if (task.status === "dep") {
+      assignedMembers = task.assignedDeployers;
+    }
+
+    // 4. Remove task from assigned members
+    const members = await User.find({ _id: { $in: assignedMembers } });
+    members.forEach((member) => {
+      const project = member.projects.find(
+        (project: any) => project._id.toString() === projectId
+      );
+      if (project) {
+        project.tasks = project.tasks.filter(
+          (t: any) => t.toString() !== taskId
+        );
+      }
+    });
+    await Promise.all(members.map((member) => member.save()));
+
+    // 5. Remove task from project backlog
+    const project = await Project.findById(projectId).populate("sprints");
+    if (project) {
+      project.backlog = project.backlog.filter(
+        (t: any) => t.toString() !== taskId
+      );
+
+      // 6. Remove task from all sprints in the project
+      project.sprints.forEach((sprint: any) => {
+        [
+          "designing",
+          "development",
+          "testing",
+          "deployment",
+          "submissions",
+          "completed",
+        ].forEach((field) => {
+          if (sprint[field]) {
+            sprint[field] = sprint[field].filter(
+              (t: any) => t.toString() !== taskId
+            );
+          }
+        });
+      });
+
+      await Promise.all(project.sprints.map((sprint: any) => sprint.save()));
+      await project.save();
+    }
+
+    // 7. Delete the task
+    await Task.findByIdAndDelete(taskId);
+
+    revalidatePath(`/project/${projectId}/backlog`);
+    revalidatePath(`/project/${projectId}`);
+    revalidatePath(`/project/${projectId}/tasks`);
+
+    return {
+      success: true,
+      message: "Task successfully deleted",
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      message: error.message || "An unexpected error occurred",
+    };
+  }
+}
 
 export async function moveTaskToDesigning(projectId: string, taskId: string) {
   try {
@@ -396,6 +539,69 @@ export async function getMembersForTask(projectId: string, taskId: string) {
   }
 }
 
+export async function getAssignedMembersForTask(
+  projectId: string,
+  taskId: string
+) {
+  try {
+    await connectToDatabase();
+
+    // Validate project
+    const project = await Project.findById(projectId).populate("members._id");
+    if (!project) {
+      return {
+        success: false,
+        message: "Project not found",
+      };
+    }
+
+    // Validate task
+    const task = await Task.findById(taskId);
+    if (!task) {
+      return {
+        success: false,
+        message: "Task not found",
+      };
+    }
+
+    // Determine members to return based on task status
+    let assignedMemberIds = [];
+    if (task.status === "des") {
+      assignedMemberIds = task.assignedDesigners;
+    } else if (task.status === "dev") {
+      assignedMemberIds = task.assignedDevelopers;
+    } else if (task.status === "tes") {
+      assignedMemberIds = task.assignedTesters;
+    } else if (task.status === "dep") {
+      assignedMemberIds = task.assignedDeployers;
+    } else {
+      return {
+        success: false,
+        message: "Invalid task status",
+      };
+    }
+
+    // Retrieve assigned members' data
+    const assignedMembers = project.members
+      .filter((member: any) =>
+        assignedMemberIds.some((assignedId: any) =>
+          assignedId.equals(member._id._id)
+        )
+      )
+      .map((member: any) => member._id); // Extract populated user data
+
+    return {
+      success: true,
+      members: JSON.parse(JSON.stringify(assignedMembers)),
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      message: error.message || "An error occurred",
+    };
+  }
+}
+
 export async function addMembersToTask(
   projectId: string,
   taskId: string,
@@ -489,6 +695,89 @@ export async function addMembersToTask(
     return {
       success: false,
       message: error.message || "An error occurred",
+    };
+  }
+}
+
+export async function removeMembersFromTask(
+  projectId: string,
+  taskId: string,
+  memberIds: string[]
+) {
+  try {
+    if (!Types.ObjectId.isValid(projectId) || !Types.ObjectId.isValid(taskId)) {
+      return {
+        success: false,
+        message: "Invalid project or task ID",
+      };
+    }
+
+    await connectToDatabase();
+
+    // Fetch the project to ensure it exists
+    const project = await Project.findById(projectId);
+    if (!project) {
+      return {
+        success: false,
+        message: "Project not found",
+      };
+    }
+
+    // Fetch the task to ensure it exists
+    const task = await Task.findById(taskId);
+    if (!task) {
+      return {
+        success: false,
+        message: "Task not found",
+      };
+    }
+
+    if (task.isSubmitted) {
+      revalidatePath(`/project/${projectId}`);
+      revalidatePath(`/tasks`);
+      return {
+        success: false,
+        message: "Task already submitted",
+      };
+    }
+
+    // Update the task to remove the members based on the task status
+    if (task.status === "des") {
+      task.assignedDesigners = task.assignedDesigners.filter(
+        (id: Types.ObjectId) => !memberIds.includes(id.toString())
+      );
+    } else if (task.status === "dev") {
+      task.assignedDevelopers = task.assignedDevelopers.filter(
+        (id: Types.ObjectId) => !memberIds.includes(id.toString())
+      );
+    } else if (task.status === "tes") {
+      task.assignedTesters = task.assignedTesters.filter(
+        (id: Types.ObjectId) => !memberIds.includes(id.toString())
+      );
+    } else if (task.status === "dep") {
+      task.assignedDeployers = task.assignedDeployers.filter(
+        (id: Types.ObjectId) => !memberIds.includes(id.toString())
+      );
+    }
+
+    // Save the updated task
+    await task.save();
+
+    // Remove the task from each member's `tasks` field
+    await User.updateMany(
+      { _id: { $in: memberIds } },
+      { $pull: { tasks: taskId } }
+    );
+    revalidatePath(`/project/${projectId}`);
+    revalidatePath(`/tasks`);
+    return {
+      success: true,
+      message: "Members successfully removed from the task",
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      message: error.message || "An error occurred while removing members",
     };
   }
 }
@@ -716,242 +1005,6 @@ export async function submitTaskFunction(projectId: string, taskId: string) {
   }
 }
 
-// export async function checkUserIsAdminAndReturnSubmittedTasks(
-//   projectId: string
-// ) {
-//   try {
-//     if (!Types.ObjectId.isValid(projectId)) {
-//       return {
-//         success: false,
-//         message: "Invalid project ID",
-//       };
-//     }
-
-//     const { userName, userId, userMail } = await userInfo();
-
-//     if (!userName || !userId || !userMail) {
-//       return {
-//         success: false,
-//         message: "User credentials not found",
-//       };
-//     }
-
-//     await connectToDatabase();
-
-//     const user = await User.findOne({
-//       clerkId: userId,
-//       email: userMail,
-//       username: userName,
-//     });
-
-//     if (!user) {
-//       return {
-//         success: false,
-//         message: "User not found",
-//       };
-//     }
-
-//     const project = await Project.findById(projectId).populate({
-//       path: "members._id",
-//     });
-
-//     if (!project) {
-//       return {
-//         success: false,
-//         message: "Project not found",
-//       };
-//     }
-
-//     const isAdmin = project.members.some(
-//       (member: any) => member._id.equals(user._id) && member.role === "admin"
-//     );
-
-//     if (!isAdmin) {
-//       return {
-//         success: false,
-//         message: "You don't have access to this page",
-//       };
-//     }
-
-//     if (!project.currentSprint) {
-//       return {
-//         success: false,
-//         message: "No current sprint available",
-//       };
-//     }
-
-//     // Retrieve the current sprint and populate the submitted tasks
-//     const currentSprint = await Sprint.findById(project.currentSprint)
-//       .populate({
-//         path: "submissions",
-//         populate: [
-//           {
-//             path: "assignedDesigners", // Designers for "designing" tasks
-//             select: "_id photo username",
-//           },
-//           {
-//             path: "assignedDevelopers", // Developers for "development" tasks
-//             select: "_id photo username",
-//           },
-//           {
-//             path: "assignedTesters", // Testers for "testing" tasks
-//             select: "_id photo username",
-//           },
-//           {
-//             path: "assignedDeployers", // Deployers for "deployment" tasks
-//             select: "_id photo username",
-//           },
-//         ],
-//         model: "Task",
-//       })
-//       .select("-__v");
-
-//     if (!currentSprint) {
-//       return {
-//         success: false,
-//         message: "Current sprint data not found",
-//       };
-//     }
-
-//     // Return the populated data of submitted tasks
-//     return {
-//       success: true,
-//       isAdmin,
-//       submittedTasks: JSON.parse(JSON.stringify(currentSprint.submissions)),
-//     };
-//   } catch (error: any) {
-//     return {
-//       success: false,
-//       message: error.message || "Something went wrong",
-//     };
-//   }
-// }
-
-// export async function checkUserIsAdminAndReturnSubmittedTasks(
-//   projectId: string
-// ) {
-//   try {
-//     if (!Types.ObjectId.isValid(projectId)) {
-//       return {
-//         success: false,
-//         message: "Invalid project ID",
-//       };
-//     }
-
-//     const { userName, userId, userMail } = await userInfo();
-
-//     if (!userName || !userId || !userMail) {
-//       return {
-//         success: false,
-//         message: "User credentials not found",
-//       };
-//     }
-
-//     await connectToDatabase();
-
-//     const user = await User.findOne({
-//       clerkId: userId,
-//       email: userMail,
-//       username: userName,
-//     });
-
-//     if (!user) {
-//       return {
-//         success: false,
-//         message: "User not found",
-//       };
-//     }
-
-//     const project = await Project.findById(projectId).populate({
-//       path: "members._id",
-//     });
-
-//     if (!project) {
-//       return {
-//         success: false,
-//         message: "Project not found",
-//       };
-//     }
-
-//     const isAdmin = project.members.some(
-//       (member: any) => member._id.equals(user._id) && member.role === "admin"
-//     );
-
-//     if (!isAdmin) {
-//       return {
-//         success: false,
-//         message: "You don't have access to this page",
-//       };
-//     }
-
-//     if (!project.currentSprint) {
-//       return {
-//         success: false,
-//         message: "No current sprint available",
-//       };
-//     }
-
-//     // Retrieve the current sprint and calculate remaining days
-//     const currentSprint = await Sprint.findById(project.currentSprint)
-//       .populate({
-//         path: "submissions",
-//         populate: [
-//           {
-//             path: "assignedDesigners", // Designers for "designing" tasks
-//             select: "_id photo username",
-//           },
-//           {
-//             path: "assignedDevelopers", // Developers for "development" tasks
-//             select: "_id photo username",
-//           },
-//           {
-//             path: "assignedTesters", // Testers for "testing" tasks
-//             select: "_id photo username",
-//           },
-//           {
-//             path: "assignedDeployers", // Deployers for "deployment" tasks
-//             select: "_id photo username",
-//           },
-//         ],
-//         model: "Task",
-//       })
-//       .select("-__v");
-
-//     if (!currentSprint) {
-//       return {
-//         success: false,
-//         message: "Current sprint data not found",
-//       };
-//     }
-
-//     // Calculate remaining days if the sprint has started
-//     let remainingDays = null;
-//     if (
-//       currentSprint.hasStarted &&
-//       currentSprint.timeSpan !== undefined &&
-//       currentSprint.currentTime !== undefined
-//     ) {
-//       remainingDays = Math.max(
-//         0,
-//         currentSprint.timeSpan - currentSprint.currentTime
-//       );
-//     }
-
-//     // Return the populated data of submitted tasks along with remaining days
-//     return {
-//       success: true,
-//       isAdmin,
-//       remainingDays,
-//       submittedTasks: JSON.parse(JSON.stringify(currentSprint.submissions)),
-//     };
-//   } catch (error: any) {
-//     return {
-//       success: false,
-//       message: error.message || "Something went wrong",
-//     };
-//   }
-// }
-
 export async function checkUserIsAdminAndReturnSubmittedTasks(
   projectId: string
 ) {
@@ -1076,841 +1129,6 @@ export async function checkUserIsAdminAndReturnSubmittedTasks(
     };
   }
 }
-
-// export async function acceptOrRejectTask({
-//   projectId,
-//   taskId,
-//   type,
-//   note = "",
-// }: {
-//   projectId: string;
-//   taskId: string;
-//   type: "accept" | "reject";
-//   note?: string;
-// }) {
-//   try {
-//     // Validate projectId and taskId
-//     if (!Types.ObjectId.isValid(projectId) || !Types.ObjectId.isValid(taskId)) {
-//       return {
-//         success: false,
-//         message: "Invalid project or task ID.",
-//       };
-//     }
-
-//     await connectToDatabase();
-
-//     // Fetch project and task documents
-//     const project = await Project.findById(projectId);
-//     const task = await Task.findById(taskId);
-//     const sprint = await Sprint.findById(project?.currentSprint);
-
-//     if (!project || !task || !sprint) {
-//       return {
-//         success: false,
-//         message: "Project, task, or current sprint not found.",
-//       };
-//     }
-
-//     if (type === "accept") {
-//       // Determine the task's current stage
-//       const currentStage = task.status;
-//       let nextStage;
-
-//       // Define the workflow for task stages
-//       switch (currentStage) {
-//         case "des":
-//           nextStage = "dev"; // Move to development
-//           break;
-//         case "dev":
-//           nextStage = "tes"; // Move to testing
-//           break;
-//         case "tes":
-//           nextStage = "dep"; // Move to deployment
-//           break;
-//         case "dep":
-//           nextStage = "com"; // Move to completed
-//           break;
-//         default:
-//           return {
-//             success: false,
-//             message: "Task is not in an accepted stage for processing.",
-//           };
-//       }
-
-//       // Remove task from current stage array in sprint
-//       sprint[currentStage] = sprint[currentStage].filter(
-//         (id: any) => !id.equals(task._id)
-//       );
-
-//       // Add task to the next stage array and update task properties
-//       if (nextStage !== "com") {
-//         sprint[nextStage].push(task._id);
-//       } else {
-//         sprint.completed.push(task._id);
-//       }
-
-//       task.status = nextStage;
-//       task.errorNote = "";
-//       task.isSubmitted = false;
-
-//       await task.save();
-//       await sprint.save();
-
-//       return {
-//         success: true,
-//         message: "Task has been successfully moved to the next stage.",
-//       };
-//     } else if (type === "reject") {
-//       // Remove the task from the submissions list in the sprint
-//       sprint.submissions = sprint.submissions.filter(
-//         (id: any) => !id.equals(task._id)
-//       );
-
-//       // Set the error note for the task and leave it in the same stage
-//       task.errorNote = note;
-//       await task.save();
-//       await sprint.save();
-
-//       return {
-//         success: true,
-//         message: "Task has been rejected with a note.",
-//       };
-//     } else {
-//       return {
-//         success: false,
-//         message: "Invalid action type.",
-//       };
-//     }
-//   } catch (error: any) {
-//     console.log(error.message);
-//     return {
-//       success: false,
-//       message: error.message || "An error occurred while processing the task.",
-//     };
-//   }
-// }
-
-// task movement works here
-// export async function acceptOrRejectTask({
-//   projectId,
-//   taskId,
-//   type,
-//   note = "",
-// }: {
-//   projectId: string;
-//   taskId: string;
-//   type: "accept" | "reject";
-//   note?: string;
-// }) {
-//   try {
-//     if (!Types.ObjectId.isValid(projectId) || !Types.ObjectId.isValid(taskId)) {
-//       return {
-//         success: false,
-//         message: "Invalid ids",
-//       };
-//     }
-
-//     await connectToDatabase();
-
-//     const project = await Project.findById(projectId);
-//     const task = await Task.findById(taskId);
-//     const sprint = await Sprint.findById(project.currentSprint);
-
-//     if (!project || !task || !sprint) {
-//       return {
-//         success: false,
-//         message: "Project, task, or sprint not found",
-//       };
-//     }
-
-//     if (type === "accept") {
-//       // Identify the current stage and determine the next stage
-//       let currentStage, nextStage, nextStatus;
-
-//       switch (task.status) {
-//         case "des":
-//           currentStage = "designing";
-//           nextStage = "development";
-//           nextStatus = "dev";
-//           break;
-//         case "dev":
-//           currentStage = "development";
-//           nextStage = "testing";
-//           nextStatus = "tes";
-//           break;
-//         case "tes":
-//           currentStage = "testing";
-//           nextStage = "deployment";
-//           nextStatus = "dep";
-//           break;
-//         case "dep":
-//           currentStage = "deployment";
-//           nextStage = "completed";
-//           nextStatus = "com";
-//           break;
-//         default:
-//           return {
-//             success: false,
-//             message: "Task cannot be accepted as it's not in a valid stage",
-//           };
-//       }
-
-//       // Remove task from `submissions` and the current stage array
-//       sprint.submissions = sprint.submissions.filter(
-//         (id: any) => !id.equals(taskId)
-//       );
-//       sprint[currentStage] = sprint[currentStage].filter(
-//         (id: any) => !id.equals(taskId)
-//       );
-
-//       // Move task to the next stage array and update task status
-//       if (nextStatus !== "com") {
-//         sprint[nextStage].push(task._id);
-//       } else {
-//         sprint.completed.push(task._id);
-//       }
-
-//       // Update task properties
-//       task.status = nextStatus;
-//       task.isSubmitted = false;
-//       task.errorNote = "";
-//     } else if (type === "reject") {
-//       // Remove the task from the `submissions` array
-//       sprint.submissions = sprint.submissions.filter(
-//         (id: any) => !id.equals(taskId)
-//       );
-//       task.errorNote = note; // Set the error note on rejection
-//     }
-
-//     // Save both sprint and task updates
-//     await Promise.all([sprint.save(), task.save()]);
-
-//     revalidatePath(`/project/${projectId}`);
-//     revalidatePath(`/project/${projectId}/submissions`);
-
-//     return {
-//       success: true,
-//       message: `Task ${
-//         type === "accept" ? "accepted" : "rejected"
-//       } successfully`,
-//     };
-//   } catch (error: any) {
-//     return {
-//       success: false,
-//       message: error.message || "Something went wrong",
-//     };
-//   }
-// }
-
-// export async function acceptOrRejectTask({
-//   projectId,
-//   taskId,
-//   type,
-//   note = "",
-// }: {
-//   projectId: string;
-//   taskId: string;
-//   type: "accept" | "reject";
-//   note?: string;
-// }) {
-//   try {
-//     if (!Types.ObjectId.isValid(projectId) || !Types.ObjectId.isValid(taskId)) {
-//       return {
-//         success: false,
-//         message: "Invalid IDs",
-//       };
-//     }
-
-//     await connectToDatabase();
-
-//     const project = await Project.findById(projectId);
-//     const task = await Task.findById(taskId);
-//     const sprint = await Sprint.findById(project.currentSprint);
-
-//     if (!project || !task || !sprint) {
-//       return {
-//         success: false,
-//         message: "Project, task, or sprint not found",
-//       };
-//     }
-
-//     if (type === "accept") {
-//       let currentStage, nextStage, nextStatus, assignedUsersField;
-
-//       switch (task.status) {
-//         case "des":
-//           currentStage = "designing";
-//           nextStage = "development";
-//           nextStatus = "dev";
-//           assignedUsersField = "assignedDesigners";
-//           break;
-//         case "dev":
-//           currentStage = "development";
-//           nextStage = "testing";
-//           nextStatus = "tes";
-//           assignedUsersField = "assignedDevelopers";
-//           break;
-//         case "tes":
-//           currentStage = "testing";
-//           nextStage = "deployment";
-//           nextStatus = "dep";
-//           assignedUsersField = "assignedTesters";
-//           break;
-//         case "dep":
-//           currentStage = "deployment";
-//           nextStage = "completed";
-//           nextStatus = "com";
-//           assignedUsersField = "assignedDeployers";
-//           break;
-//         default:
-//           return {
-//             success: false,
-//             message: "Task cannot be accepted as it's not in a valid stage",
-//           };
-//       }
-
-//       // Remove task from `submissions` and current stage
-//       sprint.submissions = sprint.submissions.filter(
-//         (id: any) => !id.equals(taskId)
-//       );
-//       sprint[currentStage] = sprint[currentStage].filter(
-//         (id: any) => !id.equals(taskId)
-//       );
-
-//       // Move task to the next stage
-//       if (nextStatus !== "com") {
-//         sprint[nextStage].push(task._id);
-//       } else {
-//         sprint.completed.push(task._id);
-//       }
-
-//       task.status = nextStatus;
-//       task.isSubmitted = false;
-//       task.errorNote = "";
-
-//       // Remove task ID from assigned users' tasks array
-//       const assignedUsers = await User.find({
-//         _id: { $in: task[assignedUsersField] },
-//       });
-
-//       await Promise.all(
-//         assignedUsers.map(async (user) => {
-//           const projectInUser = user.projects.find((p: any) =>
-//             p._id.equals(projectId)
-//           );
-//           if (projectInUser) {
-//             projectInUser.tasks = projectInUser.tasks.filter(
-//               (id: any) => !id.equals(taskId)
-//             );
-//           }
-//           await user.save();
-//         })
-//       );
-//     } else if (type === "reject") {
-//       sprint.submissions = sprint.submissions.filter(
-//         (id:any) => !id.equals(taskId)
-//       );
-//       task.errorNote = note;
-//     }
-
-//     await Promise.all([sprint.save(), task.save()]);
-
-//     return {
-//       success: true,
-//       message: `Task ${
-//         type === "accept" ? "accepted" : "rejected"
-//       } successfully`,
-//     };
-//   } catch (error: any) {
-//     return {
-//       success: false,
-//       message: error.message || "Something went wrong",
-//     };
-//   }
-// }
-
-// export async function acceptOrRejectTask({
-//   projectId,
-//   taskId,
-//   type,
-//   note = "",
-// }: {
-//   projectId: string;
-//   taskId: string;
-//   type: "accept" | "reject";
-//   note?: string;
-// }) {
-//   try {
-//     if (!Types.ObjectId.isValid(projectId) || !Types.ObjectId.isValid(taskId)) {
-//       return {
-//         success: false,
-//         message: "Invalid IDs",
-//       };
-//     }
-
-//     await connectToDatabase();
-
-//     const project = await Project.findById(projectId);
-//     const task = await Task.findById(taskId);
-//     const sprint = await Sprint.findById(project.currentSprint);
-
-//     if (!project || !task || !sprint) {
-//       return {
-//         success: false,
-//         message: "Project, task, or sprint not found",
-//       };
-//     }
-
-//     // Reset isSubmitted to false for both accept and reject scenarios
-//     task.isSubmitted = false;
-
-//     if (type === "accept") {
-//       let currentStage, nextStage, nextStatus, assignedUsersField;
-
-//       switch (task.status) {
-//         case "des":
-//           currentStage = "designing";
-//           nextStage = "development";
-//           nextStatus = "dev";
-//           assignedUsersField = "assignedDesigners";
-//           break;
-//         case "dev":
-//           currentStage = "development";
-//           nextStage = "testing";
-//           nextStatus = "tes";
-//           assignedUsersField = "assignedDevelopers";
-//           break;
-//         case "tes":
-//           currentStage = "testing";
-//           nextStage = "deployment";
-//           nextStatus = "dep";
-//           assignedUsersField = "assignedTesters";
-//           break;
-//         case "dep":
-//           currentStage = "deployment";
-//           nextStage = "completed";
-//           nextStatus = "com";
-//           assignedUsersField = "assignedDeployers";
-//           break;
-//         default:
-//           return {
-//             success: false,
-//             message: "Task cannot be accepted as it's not in a valid stage",
-//           };
-//       }
-
-//       // Remove task from `submissions` and current stage
-//       sprint.submissions = sprint.submissions.filter(
-//         (id: any) => !id.equals(taskId)
-//       );
-//       sprint[currentStage] = sprint[currentStage].filter(
-//         (id: any) => !id.equals(taskId)
-//       );
-
-//       // Move task to the next stage
-//       if (nextStatus !== "com") {
-//         sprint[nextStage].push(task._id);
-//       } else {
-//         sprint.completed.push(task._id);
-//       }
-
-//       task.status = nextStatus;
-//       task.errorNote = "";
-
-//       // Remove task ID from assigned users' tasks array
-//       const assignedUsers = await User.find({
-//         _id: { $in: task[assignedUsersField] },
-//       });
-
-//       await Promise.all(
-//         assignedUsers.map(async (user) => {
-//           // Find the project in the user's projects array
-//           const projectInUser = user.projects.find((p: any) =>
-//             p._id.equals(projectId)
-//           );
-//           if (projectInUser) {
-//             // Remove the task ID from the tasks array of that project
-//             projectInUser.tasks = projectInUser.tasks.filter(
-//               (id: any) => !id.equals(taskId)
-//             );
-//             // Save the user with the updated tasks array
-//             await user.save();
-//           }
-//         })
-//       );
-//     } else if (type === "reject") {
-//       sprint.submissions = sprint.submissions.filter(
-//         (id: any) => !id.equals(taskId)
-//       );
-//       task.errorNote = note;
-//     }
-
-//     // Save the sprint and task after changes
-//     await Promise.all([sprint.save(), task.save()]);
-
-//     return {
-//       success: true,
-//       message: `Task ${
-//         type === "accept" ? "accepted" : "rejected"
-//       } successfully`,
-//     };
-//   } catch (error: any) {
-//     return {
-//       success: false,
-//       message: error.message || "Something went wrong",
-//     };
-//   }
-// }
-
-// export async function acceptOrRejectTask({
-//   projectId,
-//   taskId,
-//   type,
-//   note = "",
-// }: {
-//   projectId: string;
-//   taskId: string;
-//   type: "accept" | "reject";
-//   note?: string;
-// }) {
-//   try {
-//     if (!Types.ObjectId.isValid(projectId) || !Types.ObjectId.isValid(taskId)) {
-//       return {
-//         success: false,
-//         message: "Invalid IDs",
-//       };
-//     }
-
-//     await connectToDatabase();
-
-//     const project = await Project.findById(projectId);
-//     const task = await Task.findById(taskId);
-//     const sprint = await Sprint.findById(project.currentSprint);
-
-//     if (!project || !task || !sprint) {
-//       return {
-//         success: false,
-//         message: "Project, task, or sprint not found",
-//       };
-//     }
-
-//     // Reset isSubmitted to false for both accept and reject scenarios
-//     task.isSubmitted = false;
-
-//     if (type === "accept") {
-//       let currentStage, nextStage, nextStatus, assignedUsersField;
-
-//       switch (task.status) {
-//         case "des":
-//           currentStage = "designing";
-//           nextStage = "development";
-//           nextStatus = "dev";
-//           assignedUsersField = "assignedDesigners";
-//           break;
-//         case "dev":
-//           currentStage = "development";
-//           nextStage = "testing";
-//           nextStatus = "tes";
-//           assignedUsersField = "assignedDevelopers";
-//           break;
-//         case "tes":
-//           currentStage = "testing";
-//           nextStage = "deployment";
-//           nextStatus = "dep";
-//           assignedUsersField = "assignedTesters";
-//           break;
-//         case "dep":
-//           currentStage = "deployment";
-//           nextStage = "completed";
-//           nextStatus = "com";
-//           assignedUsersField = "assignedDeployers";
-//           break;
-//         default:
-//           return {
-//             success: false,
-//             message: "Task cannot be accepted as it's not in a valid stage",
-//           };
-//       }
-
-//       // Remove task from `submissions` and current stage
-//       sprint.submissions = sprint.submissions.filter(
-//         (id: any) => !id.equals(taskId)
-//       );
-//       sprint[currentStage] = sprint[currentStage].filter(
-//         (id: any) => !id.equals(taskId)
-//       );
-
-//       // Move task to the next stage
-//       if (nextStatus !== "com") {
-//         sprint[nextStage].push(task._id);
-//       } else {
-//         sprint.completed.push(task._id);
-//       }
-
-//       task.status = nextStatus;
-//       task.errorNote = "";
-
-//       // Remove task from the assigned users' tasks directly using update
-//       const assignedUsers = task[assignedUsersField];
-
-//       await Promise.all(
-//         assignedUsers.map(async (userId: Types.ObjectId) => {
-//           await User.updateOne(
-//             { _id: userId, "projects._id": projectId },
-//             { $pull: { "projects.$.tasks": taskId } }
-//           );
-//         })
-//       );
-//     } else if (type === "reject") {
-//       sprint.submissions = sprint.submissions.filter(
-//         (id: any) => !id.equals(taskId)
-//       );
-//       task.errorNote = note;
-//     }
-
-//     // Save the sprint and task after changes
-//     await Promise.all([sprint.save(), task.save()]);
-
-//     return {
-//       success: true,
-//       message: `Task ${
-//         type === "accept" ? "accepted" : "rejected"
-//       } successfully`,
-//     };
-//   } catch (error: any) {
-//     return {
-//       success: false,
-//       message: error.message || "Something went wrong",
-//     };
-//   }
-// }
-
-// export async function acceptOrRejectTask({
-//   projectId,
-//   taskId,
-//   type,
-//   note = "",
-// }: {
-//   projectId: string;
-//   taskId: string;
-//   type: "accept" | "reject";
-//   note?: string;
-// }) {
-//   try {
-//     if (!Types.ObjectId.isValid(projectId) || !Types.ObjectId.isValid(taskId)) {
-//       return {
-//         success: false,
-//         message: "Invalid IDs",
-//       };
-//     }
-
-//     await connectToDatabase();
-
-//     const project = await Project.findById(projectId);
-//     const task = await Task.findById(taskId);
-//     const sprint = await Sprint.findById(project.currentSprint);
-
-//     if (!project || !task || !sprint) {
-//       return {
-//         success: false,
-//         message: "Project, task, or sprint not found",
-//       };
-//     }
-
-//     // Reset isSubmitted to false for both accept and reject scenarios
-//     task.isSubmitted = false;
-
-//     if (type === "accept") {
-//       let currentStage, nextStage, nextStatus, assignedUsersField;
-
-//       switch (task.status) {
-//         case "des":
-//           currentStage = "designing";
-//           nextStage = "development";
-//           nextStatus = "dev";
-//           assignedUsersField = "assignedDesigners";
-//           break;
-//         case "dev":
-//           currentStage = "development";
-//           nextStage = "testing";
-//           nextStatus = "tes";
-//           assignedUsersField = "assignedDevelopers";
-//           break;
-//         case "tes":
-//           currentStage = "testing";
-//           nextStage = "deployment";
-//           nextStatus = "dep";
-//           assignedUsersField = "assignedTesters";
-//           break;
-//         case "dep":
-//           currentStage = "deployment";
-//           nextStage = "completed";
-//           nextStatus = "com";
-//           assignedUsersField = "assignedDeployers";
-//           break;
-//         default:
-//           return {
-//             success: false,
-//             message: "Task cannot be accepted as it's not in a valid stage",
-//           };
-//       }
-
-//       // Remove task from `submissions` and current stage
-//       sprint.submissions = sprint.submissions.filter(
-//         (id: any) => !id.equals(taskId)
-//       );
-//       sprint[currentStage] = sprint[currentStage].filter(
-//         (id: any) => !id.equals(taskId)
-//       );
-
-//       // Move task to the next stage
-//       if (nextStatus !== "com") {
-//         sprint[nextStage].push(task._id);
-//       } else {
-//         sprint.completed.push(task._id);
-//       }
-
-//       task.status = nextStatus;
-//       task.errorNote = "";
-
-//       // Remove task from the assigned users' tasks directly
-//       const assignedUsers = task[assignedUsersField];
-
-//       await Promise.all(
-//         assignedUsers.map(async (userId: Types.ObjectId) => {
-//           // Update the user's tasks array within the correct project
-//           await User.updateOne(
-//             { _id: userId, "projects._id": projectId },
-//             { $pull: { "projects.$.tasks": taskId } }
-//           );
-//         })
-//       );
-//     } else if (type === "reject") {
-//       sprint.submissions = sprint.submissions.filter(
-//         (id: any) => !id.equals(taskId)
-//       );
-//       task.errorNote = note;
-//     }
-
-//     // Save the sprint and task after changes
-//     await Promise.all([sprint.save(), task.save()]);
-
-//     return {
-//       success: true,
-//       message: `Task ${
-//         type === "accept" ? "accepted" : "rejected"
-//       } successfully`,
-//     };
-//   } catch (error: any) {
-//     return {
-//       success: false,
-//       message: error.message || "Something went wrong",
-//     };
-//   }
-// }
-
-// export async function acceptOrRejectTask({
-//   projectId,
-//   taskId,
-//   type,
-//   note = "",
-// }: {
-//   projectId: string;
-//   taskId: string;
-//   type: "accept" | "reject";
-//   note?: string;
-// }) {
-//   try {
-//     if (!Types.ObjectId.isValid(projectId) || !Types.ObjectId.isValid(taskId)) {
-//       return { success: false, message: "Invalid IDs" };
-//     }
-
-//     await connectToDatabase();
-
-//     const project = await Project.findById(projectId);
-//     const task = await Task.findById(taskId);
-//     const sprint = await Sprint.findById(project.currentSprint);
-
-//     if (!project || !task || !sprint) {
-//       return { success: false, message: "Project, task, or sprint not found" };
-//     }
-
-//     task.isSubmitted = false;
-
-//     if (type === "accept") {
-//       let currentStage, nextStage, nextStatus, assignedUsersField;
-
-//       switch (task.status) {
-//         case "des":
-//           currentStage = "designing";
-//           nextStage = "development";
-//           nextStatus = "dev";
-//           assignedUsersField = "assignedDesigners";
-//           break;
-//         case "dev":
-//           currentStage = "development";
-//           nextStage = "testing";
-//           nextStatus = "tes";
-//           assignedUsersField = "assignedDevelopers";
-//           break;
-//         case "tes":
-//           currentStage = "testing";
-//           nextStage = "deployment";
-//           nextStatus = "dep";
-//           assignedUsersField = "assignedTesters";
-//           break;
-//         case "dep":
-//           currentStage = "deployment";
-//           nextStage = "completed";
-//           nextStatus = "com";
-//           assignedUsersField = "assignedDeployers";
-//           break;
-//         default:
-//           return { success: false, message: "Task cannot be accepted as it's not in a valid stage" };
-//       }
-
-//       sprint.submissions = sprint.submissions.filter((id: any) => !id.equals(taskId));
-//       sprint[currentStage] = sprint[currentStage].filter((id: any) => !id.equals(taskId));
-
-//       if (nextStatus !== "com") {
-//         sprint[nextStage].push(task._id);
-//       } else {
-//         sprint.completed.push(task._id);
-//       }
-
-//       task.status = nextStatus;
-//       task.errorNote = "";
-
-//       // Debugging console logs
-//       console.log("Assigned Users:", task[assignedUsersField]);
-
-//       const assignedUsers = task[assignedUsersField];
-//       await Promise.all(
-//         assignedUsers.map(async (userId: Types.ObjectId) => {
-//           const user = await User.findOne({ _id: userId });
-//           if (user) {
-//             const projectIndex = user.projects.findIndex((p: any) => p._id.equals(projectId));
-//             if (projectIndex !== -1) {
-//               const project = user.projects[projectIndex];
-//               project.tasks = project.tasks.filter((taskIdInUser: Types.ObjectId) => !taskIdInUser.equals(taskId));
-//               console.log("Updated Tasks for User:", project.tasks);
-//               await user.save();
-//             }
-//           }
-//         })
-//       );
-//     } else if (type === "reject") {
-//       sprint.submissions = sprint.submissions.filter((id: any) => !id.equals(taskId));
-//       task.errorNote = note;
-//     }
-
-//     await Promise.all([sprint.save(), task.save()]);
-//     return { success: true, message: `Task ${type === "accept" ? "accepted" : "rejected"} successfully` };
-//   } catch (error: any) {
-//     return { success: false, message: error.message || "Something went wrong" };
-//   }
-// }
-
 export async function acceptOrRejectTask({
   projectId,
   taskId,

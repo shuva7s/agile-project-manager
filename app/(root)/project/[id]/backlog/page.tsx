@@ -3,7 +3,6 @@ import ErrorDiv from "@/components/shared/ErrorDiv";
 import { Suspense } from "react";
 import {
   Card,
-  CardContent,
   CardDescription,
   CardFooter,
   CardHeader,
@@ -14,6 +13,7 @@ import { checkUserIsAdminAndReturnBackLogTasks } from "@/lib/actions/task.action
 import BacklogLoader from "@/components/loaders/BacklogLoader";
 import PushToDes from "@/components/client/PushToDes";
 import { Badge } from "@/components/ui/badge";
+import DeleteTask from "@/components/client/DeleteTask";
 
 async function BackLogAccessCheckAndRender({
   projectId,
@@ -24,6 +24,7 @@ async function BackLogAccessCheckAndRender({
     const { success, message, backlogTasks } =
       await checkUserIsAdminAndReturnBackLogTasks(projectId);
     if (success) {
+      // console.log(backlogTasks);
       return (
         <section>
           <div className="flex justify-end max-w-7xl mx-auto">
@@ -33,13 +34,28 @@ async function BackLogAccessCheckAndRender({
             {backlogTasks.length > 0 ? (
               backlogTasks.map((task: any) => (
                 <Card key={task._id} className="flex flex-col justify-between">
-                  <CardHeader>
-                    <CardTitle className="text-xl text-primary font-semibold tracking-normal">
-                      {task.name}
-                    </CardTitle>
-                    <CardDescription className="tracking-normal mt-0.5">
-                      {task.description}
-                    </CardDescription>
+                  <CardHeader className="flex flex-row flex-wrap">
+                    <div className="flex-1">
+                      <CardTitle className="text-xl text-primary font-semibold tracking-normal">
+                        {task.name}
+                      </CardTitle>
+                      <CardDescription className="tracking-normal mt-0.5">
+                        {task.description}
+                      </CardDescription>
+                    </div>
+                    {task.status !== "com" && (
+                      <div className="flex gap-2 text-foreground/50">
+                        <Create_update_task
+                          type="update"
+                          projectId={projectId}
+                          taskId={task._id}
+                          name={task.name}
+                          description={task.description}
+                          priority={task.priority}
+                        />
+                        <DeleteTask projectId={projectId} taskId={task._id} />
+                      </div>
+                    )}
                   </CardHeader>
                   <CardFooter className="flex justify-between gap-2">
                     {task.status === "ns" ? (

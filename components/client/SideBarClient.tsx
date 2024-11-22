@@ -16,8 +16,9 @@ const SideBarClient = ({ isMobile = false }: { isMobile?: boolean }) => {
             <Button
               asChild
               className={`w-full justify-start rounded-2xl p-2 transition-all text-muted-foreground ${
-                (link.href === "/" && pathName === "/") ||
-                (link.href !== "/" && pathName.includes(link.href))
+                // (link.href === "/" && pathName === "/") ||
+                // (link.href !== "/" && pathName.includes(link.href))
+                link.href === pathName
                   ? "bg-primary py-7 text-primary-foreground pl-4"
                   : "bg-transparent py-7 hover:text-primary-foreground hover:pl-4"
               }`}
@@ -39,8 +40,9 @@ const SideBarClient = ({ isMobile = false }: { isMobile?: boolean }) => {
             <SheetClose
               asChild
               className={`w-full flex flex-row rounded-2xl px-4 py-6 hover:bg-primary text-muted-foreground ${
-                (link.href === "/" && pathName === "/") ||
-                (link.href !== "/" && pathName.includes(link.href))
+                // (link.href === "/" && pathName === "/") ||
+                // (link.href !== "/" && pathName.includes(link.href))
+                link.href === pathName
                   ? "bg-primary py-6 text-white"
                   : "bg-transparent py-6 hover:text-white"
               }`}
