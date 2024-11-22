@@ -34,11 +34,13 @@ const formSchema = z.object({
 });
 
 const Create_update_project = ({
+  first = false,
   type,
   id,
   name = "",
   description = "",
 }: {
+  first?: boolean;
   type: "create" | "update";
   id?: string;
   name?: string;
@@ -115,7 +117,10 @@ const Create_update_project = ({
         {type === "create" ? (
           <Button
             disabled={processing}
-            className="rounded-2xl w-full sm:w-fit py-6 sm:py-4 sm:mt-0"
+            variant={first ? "ghost" : "default"}
+            className={`rounded-2xl w-full sm:w-fit py-6 sm:py-4 ${
+              first && "w-fit py-0"
+            }`}
           >
             {processing ? (
               <>
@@ -123,7 +128,7 @@ const Create_update_project = ({
                 <span>Creating</span>
               </>
             ) : (
-              "Create project"
+              <>{first ? "Create your first project" : "Create project"}</>
             )}
           </Button>
         ) : (

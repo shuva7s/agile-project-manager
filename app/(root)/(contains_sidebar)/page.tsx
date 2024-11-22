@@ -9,7 +9,7 @@ export default async function Homepage() {
   return (
     <>
       <SignedIn>
-        <main className="min-h-[150vh] border-l page_border">
+        <main className="min-h-[100vh] border-l page_border">
           <PageIntro
             heading="Your projects"
             description="Projects created by you"

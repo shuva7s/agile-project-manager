@@ -13,6 +13,8 @@ import Link from "next/link";
 import { Button } from "../ui/button";
 import { Chart } from "../client/Chart";
 import ErrorDiv from "./ErrorDiv";
+import Image from "next/image";
+import Create_update_project from "../client/Create_update_project";
 async function ProjectsContainer({ getHosted = true }) {
   try {
     const { success, projects } = await getProjects(getHosted);
@@ -35,7 +37,6 @@ async function ProjectsContainer({ getHosted = true }) {
                       total={project.totalTasks}
                       completed={project.completedTasks}
                     />
-                    // <Chart total={12} completed={5} />
                   ) : (
                     <div className="min-h-44 flex justify-center items-center">
                       <p className="text-muted-foreground">Not started yet</p>
@@ -78,17 +79,23 @@ async function ProjectsContainer({ getHosted = true }) {
                 </CardFooter>
               </Link>
             </Card>
-            // <div key={project._id}>
-            //   {/* Make sure to add a key */}
-            //   <p>{project.name}</p>
-            //   <p>{project.description}</p>
-            // </div>
           ))}
         </section>
       );
     } else {
       return (
-        <p className="text-muted-foreground mt-4 wrap">No projects to show</p>
+        <section className="min-h-[75vh] flex flex-col justify-center items-center">
+          <Image
+            src="/yourProject.png"
+            width={400}
+            height={400}
+            alt="yourProject"
+            className="translate-x-[4%] lg:translate-x-[5%]"
+            priority={true}
+            draggable={false}
+          />
+          <Create_update_project type="create" first={true} />
+        </section>
       );
     }
   } catch (error: any) {
