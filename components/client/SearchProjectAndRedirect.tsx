@@ -69,7 +69,7 @@ const SearchProjectAndRedirect = () => {
         <h2 className="text-center md:text-left text-lg text-primary tracking-wide">
           Search and send join request.
         </h2>
-        <div className="flex gap-4 flex-row flex-wrap">
+        <div className="flex gap-4 flex-col md:flex-row">
           <FormField
             control={form.control}
             name="project_id"
@@ -77,7 +77,7 @@ const SearchProjectAndRedirect = () => {
               <FormItem>
                 <FormControl>
                   <Input
-                    className="py-5 w-80"
+                    className="py-5 w-full"
                     placeholder="Enter project id"
                     {...field}
                   />
