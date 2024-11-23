@@ -71,9 +71,12 @@ export default function ProjectSettingsPage({
   return (
     <>
       <section className="max-w-7xl mx-auto">
-        <h2 className="text-primary text-xl font-semibold py-6">
-          Project settings
-        </h2>
+        <div className="my-8">
+          <h2 className="text-primary text-2xl font-medium">
+            Project settings
+          </h2>
+          <p className="text-muted-foreground">Change project settings</p>
+        </div>
 
         <Suspense
           fallback={

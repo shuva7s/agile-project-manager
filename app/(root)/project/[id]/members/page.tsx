@@ -95,8 +95,9 @@ export default function ProjectMembersPage({
   return (
     <>
       <div className="max-w-7xl mx-auto">
-        <div className="text-xl my-8 ">
-          <p className="text-primary font-semibold">Members</p>
+        <div className="my-8 ">
+          <p className="text-primary font-medium text-2xl">Members</p>
+          <p className="text-muted-foreground">Showing all members.</p>
         </div>
         <Suspense fallback={<JoinReqsLoader />}>
           <MembersRenderer projectId={params.id} />

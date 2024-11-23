@@ -103,8 +103,8 @@ export default function ProjectBacklogPage({
   return (
     <>
       <div className="max-w-7xl mx-auto">
-        <div className="my-8 text-center">
-          <h2 className="text-primary text-xl font-semibold">Backlogs</h2>
+        <div className="mt-8 mb-8 sm:mb-0">
+          <h2 className="text-primary text-2xl font-medium">Backlogs</h2>
           <p className="text-muted-foreground">Add all tasks here.</p>
         </div>
         <Suspense fallback={<BacklogLoader />}>

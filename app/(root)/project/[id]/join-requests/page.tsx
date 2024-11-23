@@ -77,9 +77,11 @@ export default function JoinRequestsPage({
   return (
     <>
       <div className="max-w-7xl mx-auto">
-        <div className="text-xl my-8 ">
-          <p className="text-primary font-semibold">Join requests</p>
+        <div className="my-8">
+          <p className="text-primary text-2xl font-medium">Join requests</p>
+          <p className="text-muted-foreground">Showing all join requests.</p>
         </div>
+
         <Suspense fallback={<JoinReqsLoader />}>
           <JoinReqAccessCheckAndRender projectId={params.id} />
         </Suspense>
