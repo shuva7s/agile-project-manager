@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "../ui/button";
 import Link from "next/link";
+import Share from "../client/Share";
 
 const ProjectOptions = ({
   projectId,
@@ -84,6 +85,10 @@ const ProjectOptions = ({
             </DropdownMenuItem>
           </>
         )}
+
+        <DropdownMenuItem className="p-0">
+          <Share projectId={projectId} />
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
