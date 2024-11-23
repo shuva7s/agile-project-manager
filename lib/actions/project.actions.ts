@@ -175,6 +175,9 @@ export const deleteProject = async (projectId: string) => {
     // Step 5: Delete the project itself
     await Project.findByIdAndDelete(projectId);
 
+    revalidatePath("/");
+    revalidatePath("/joined-projects");
+
     return {
       success: true,
       message: "Project and all associated data deleted successfully",

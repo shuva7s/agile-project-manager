@@ -26,7 +26,7 @@ async function MyTasksRenderer() {
     if (success) {
       // console.dir(tasks[0]);
       return (
-        <section className="columns-1 sm:columns-2 lg:columns-3 gap-4 space-y-4 wrap">
+        <section className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 mx-4">
           {tasks.length > 0 ? (
             tasks.map((task: any) => (
               <Card key={task.taskId} className="break-inside-avoid">
