@@ -84,7 +84,7 @@ async function ProjectsContainer({ getHosted = true }) {
       );
     } else {
       return (
-        <section className="min-h-[75vh] flex flex-col justify-center items-center">
+        <section className="min-h-[75vh] flex flex-col justify-center items-center overflow-x-hidden">
           {getHosted ? (
             <>
               <Image

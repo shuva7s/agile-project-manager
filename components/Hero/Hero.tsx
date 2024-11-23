@@ -5,7 +5,7 @@ import "./hero.css";
 import MotionDiv from "../client/Motion_div";
 const Hero = () => {
   return (
-    <section className="w-full min-h-screen flex flex-col justify-center items-center text-center relative dark:bg-dot-white/[0.2] bg-dot-black/[0.2]">
+    <section className="w-full min-h-[80vh] md:min-h-screen flex flex-col justify-center items-center text-center relative dark:bg-dot-white/[0.2] bg-dot-black/[0.2]">
       <div className="py-7 px-8 relative w-full flex justify-center">
         <div className="relative px-6">
           <MotionDiv
@@ -31,10 +31,10 @@ const Hero = () => {
         <div className="absolute w-full bottom-0 left-0 border-t border-primary border-dashed" />
       </div>
       <div className="absolute w-full h-full fade z-10 pointer-events-none" />
-      <p className="mt-4 text-muted-foreground tracking-wide">
+      <p className="mt-4 text-muted-foreground tracking-wide px-8">
         Say goodbye to bullet points and excel sheets.
       </p>
-      <p className="text-xl w-full px-20">
+      <p className="text-xl w-full px-10">
         <span className="text-primary">Create</span>,{" "}
         <span className="text-primary">manage</span>, and{" "}
         <span className="text-primary">collaborate</span> on projects with{" "}
