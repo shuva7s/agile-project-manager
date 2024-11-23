@@ -1,3 +1,4 @@
+import SearchProjectAndRedirect from "@/components/client/SearchProjectAndRedirect";
 import PageIntro from "@/components/shared/PageIntro";
 import Image from "next/image";
 
@@ -10,10 +11,7 @@ export default function JoinProjectPage() {
       />
       <hr />
       <section className="wrap flex flex-col md:flex-row justify-between items-center md:items-start min-h-[70vh] lg:px-16">
-        <div className="mt-12 flex flex-row gap-4 items-center h-fit">
-          <div className="w-80 h-12 rounded-2xl bg-accent flex-shrink-0" />
-          <div className="w-16 h-12 rounded-2xl bg-primary flex-shrink-0" />
-        </div>
+        <SearchProjectAndRedirect />
 
         <div className="md:self-end">
           <Image

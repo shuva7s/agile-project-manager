@@ -85,16 +85,35 @@ async function ProjectsContainer({ getHosted = true }) {
     } else {
       return (
         <section className="min-h-[75vh] flex flex-col justify-center items-center">
-          <Image
-            src="/yourProject.png"
-            width={400}
-            height={400}
-            alt="yourProject"
-            className="translate-x-[4%] lg:translate-x-[5%]"
-            priority={true}
-            draggable={false}
-          />
-          <Create_update_project type="create" first={true} />
+          {getHosted ? (
+            <>
+              <Image
+                src="/yourProject.png"
+                width={400}
+                height={400}
+                alt="yourProject"
+                className="translate-x-[4%] lg:translate-x-[5%]"
+                priority={true}
+                draggable={false}
+              />
+              <Create_update_project type="create" first={true} />
+            </>
+          ) : (
+            <>
+              <Image
+                src="/joinProject.png"
+                width={400}
+                height={400}
+                alt="joinProject"
+                className="translate-x-[4%] lg:translate-x-[5%]"
+                priority={true}
+                draggable={false}
+              />
+              <Button asChild className="rounded-2xl" variant="ghost">
+                <Link href="/join-project">Join your first project</Link>
+              </Button>
+            </>
+          )}
         </section>
       );
     }

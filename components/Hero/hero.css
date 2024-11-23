@@ -1,0 +1,39 @@
+.y_translate {
+  transform: translateY(-50%);
+}
+.x_translate {
+  transform: translateX(calc(-50% - 1.5rem));
+}
+
+.fade {
+  @apply bg-[radial-gradient(ellipse,transparent_10%,hsl(var(--background))_90%)] md:bg-[radial-gradient(ellipse,transparent_10%,hsl(var(--background))_70%)];
+}
+
+@keyframes gradient-animation {
+  0% {
+    background-position: 200% 50%;
+  }
+
+  100% {
+    background-position: -200% 50%;
+  }
+}
+
+.text_glow {
+  background: linear-gradient(
+    to right,
+    hsl(var(--primary)),
+    rgb(188, 255, 255),
+    hsl(var(--primary)),
+    hsl(var(--primary))
+  );
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  background-repeat: no-repeat;
+  background-position: 200% center;
+  background-size: 200%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  animation: gradient-animation 7s linear infinite;
+  background-color: hsl(var(--primary));
+}

@@ -1,9 +1,8 @@
 import Create_update_project from "@/components/client/Create_update_project";
+import Hero from "@/components/Hero/Hero";
 import PageIntro from "@/components/shared/PageIntro";
 import ProjectsContainerRenderer from "@/components/shared/ProjectsContainerRenderer";
-import { Button } from "@/components/ui/button";
 import { SignedIn, SignedOut } from "@clerk/nextjs";
-import Link from "next/link";
 
 export default async function Homepage() {
   return (
@@ -25,13 +24,8 @@ export default async function Homepage() {
         </main>
       </SignedIn>
       <SignedOut>
-        <main className="w-full min-h-screen flex flex-col gap-4 justify-center items-center">
-          <h1 className="text-3xl text-muted-foreground">
-            You are missing out
-          </h1>
-          <Button asChild>
-            <Link href={"/sign-in"}>Sign in</Link>
-          </Button>
+        <main className="py-0">
+          <Hero />
         </main>
       </SignedOut>
     </>

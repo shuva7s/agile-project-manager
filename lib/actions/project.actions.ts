@@ -188,67 +188,44 @@ export const deleteProject = async (projectId: string) => {
   }
 };
 
-// export async function getProjects(getHosted = false) {
-//   try {
-//     await connectToDatabase();
+export async function searchProject(
+  projectId: string
+): Promise<{ success: boolean; message: string }> {
+  try {
+    // Validate if the provided projectId is a valid MongoDB ObjectId
+    if (!Types.ObjectId.isValid(projectId)) {
+      return {
+        success: false,
+        message: "Enter a valid project ID",
+      };
+    }
 
-//     const { userName, userId, userMail } = await userInfo();
+    // Connect to the database
+    await connectToDatabase();
 
-//     if (!userName || !userId || !userMail) {
-//       return {
-//         success: false,
-//         message: "User credentials not found",
-//       };
-//     }
+    // Check if the project exists
+    const project = await Project.findById(projectId);
 
-//     const user = await User.findOne({
-//       clerkId: userId,
-//       email: userMail,
-//       username: userName,
-//     }).populate({
-//       path: "projects._id",
-//       select: "name description members joinRequests createdAt",
-//     });
+    if (!project) {
+      return {
+        success: false,
+        message: "Project not found",
+      };
+    }
 
-//     if (!user) {
-//       return {
-//         success: false,
-//         message: "User not found",
-//       };
-//     }
-
-//     const projects = user.projects
-//       .filter((project: any) => {
-//         const projectData = project._id;
-//         if (!projectData) return false;
-
-//         // Find the user's role in each project's members array
-//         const userRole = projectData.members.find((member: any) =>
-//           member._id.equals(user._id)
-//         )?.role;
-
-//         // Filter based on role (admin if getHosted is true, otherwise non-admin)
-//         return getHosted ? userRole === "admin" : userRole !== "admin";
-//       })
-//       .map((project: any) => ({
-//         _id: project._id._id,
-//         name: project._id.name,
-//         description: project._id.description,
-//         memberCount: project._id.members?.length || 0,
-//         joinRequestCount: project._id.joinRequests?.length || 0,
-//       }));
-
-//     return {
-//       success: true,
-//       projects,
-//     };
-//   } catch (error: any) {
-//     return {
-//       success: false,
-//       message: error.message,
-//     };
-//   }
-// }
+    // Return success if the project exists
+    return {
+      success: true,
+      message: "Project exists",
+    };
+  } catch (error: any) {
+    // Handle errors and return appropriate response
+    return {
+      success: false,
+      message: error.message || "An unexpected error occurred",
+    };
+  }
+}
 
 export async function getProjects(getHosted = false) {
   try {
@@ -712,112 +689,6 @@ export async function checkUserIsAdminAndReturnMembers(projectId: string) {
     };
   }
 }
-
-// export async function removeMemberFromProject(
-//   projectId: string,
-//   memberIdToRemove: string
-// ) {
-//   try {
-//     if (
-//       !Types.ObjectId.isValid(projectId) ||
-//       !Types.ObjectId.isValid(memberIdToRemove)
-//     ) {
-//       return {
-//         success: false,
-//         message: "Invalid project or user ID",
-//       };
-//     }
-
-//     await connectToDatabase();
-
-//     // Find the user to remove
-//     const user = await User.findById(memberIdToRemove);
-//     if (!user) {
-//       return {
-//         success: false,
-//         message: "User not found",
-//       };
-//     }
-
-//     // Check if the project exists in the user's project list
-//     const userProject = user.projects.find(
-//       (project: any) => project._id.toString() === projectId
-//     );
-
-//     if (!userProject) {
-//       return {
-//         success: false,
-//         message: "User is not a member of this project",
-//       };
-//     }
-//     // Find the project
-//     const project = await Project.findById(projectId);
-//     if (!project) {
-//       return {
-//         success: false,
-//         message: "Project not found",
-//       };
-//     }
-
-//     const taskIds = userProject.tasks;
-
-//     if (taskIds.length === 0) {
-//       return {
-//         success: false,
-//         message: "User has no tasks to remove",
-//       };
-//     }
-//     for (const taskId of taskIds) {
-//       const memberIdObject = new Types.ObjectId(memberIdToRemove);
-
-//       const task = await Task.findById(taskId);
-//       if (task) {
-//         if (task.status === "des") {
-//           task.assignedDesigners = task.assignedDesigners.filter(
-//             (id: any) => !id.equals(memberIdToRemove)
-//           );
-//         } else if (task.status === "dev") {
-//           task.assignedDevelopers = task.assignedDevelopers.filter(
-//             (id: any) => !id.equals(memberIdToRemove)
-//           );
-//         } else if (task.status === "tes") {
-//           task.assignedTesters = task.assignedTesters.filter(
-//             (id: any) => !id.equals(memberIdToRemove)
-//           );
-//         } else if (task.status === "dep") {
-//           task.assignedDeployers = task.assignedDeployers.filter(
-//             (id: any) => !id.equals(memberIdToRemove)
-//           );
-//         }
-//         await task.save();
-//       }
-//     }
-
-//     project.members = project.members.filter(
-//       (member: any) => !member._id.equals(memberIdToRemove)
-//     );
-//     user.projects = user.projects.filter(
-//       (projectEntry: any) => !projectEntry._id.equals(projectId)
-//     );
-
-//     await project.save();
-//     await user.save();
-//     revalidatePath(`/`);
-//     revalidatePath(`/project/${projectId}`);
-//     revalidatePath(`/project/${projectId}/members`);
-
-//     return {
-//       success: true,
-//       message: "Member successfully removed from project and tasks",
-//     };
-//   } catch (error: any) {
-//     console.error("Error removing member from project:", error);
-//     return {
-//       success: false,
-//       message: error.message || "An unexpected error occurred",
-//     };
-//   }
-// }
 
 export async function removeMemberFromProject(
   projectId: string,

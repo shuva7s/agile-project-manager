@@ -5,7 +5,6 @@ import ErrorDiv from "@/components/shared/ErrorDiv";
 import TaskList from "@/components/shared/TaskList";
 import {
   Accordion,
-  AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
@@ -83,7 +82,7 @@ async function CheckUserIsAdminOrMemberAndRender({
                 <TaskList
                   isAdmin={isAdmin}
                   projectId={projectId}
-                  tasks={currentSprintData.designing}
+                  tasks={currentSprintData.designing.reverse()}
                   type="designing"
                 />
               </AccordionItem>
@@ -94,7 +93,7 @@ async function CheckUserIsAdminOrMemberAndRender({
                 <TaskList
                   isAdmin={isAdmin}
                   projectId={projectId}
-                  tasks={currentSprintData.development}
+                  tasks={currentSprintData.development.reverse()}
                   type="development"
                 />
               </AccordionItem>
@@ -105,7 +104,7 @@ async function CheckUserIsAdminOrMemberAndRender({
                 <TaskList
                   isAdmin={isAdmin}
                   projectId={projectId}
-                  tasks={currentSprintData.testing}
+                  tasks={currentSprintData.testing.reverse()}
                   type="testing"
                 />
               </AccordionItem>
@@ -116,7 +115,7 @@ async function CheckUserIsAdminOrMemberAndRender({
                 <TaskList
                   isAdmin={isAdmin}
                   projectId={projectId}
-                  tasks={currentSprintData.deployment}
+                  tasks={currentSprintData.deployment.reverse()}
                   type="deployment"
                 />
               </AccordionItem>
@@ -127,7 +126,7 @@ async function CheckUserIsAdminOrMemberAndRender({
                 <TaskList
                   isAdmin={isAdmin}
                   projectId={projectId}
-                  tasks={currentSprintData.completed}
+                  tasks={currentSprintData.completed.reverse()}
                   type="done"
                 />
               </AccordionItem>

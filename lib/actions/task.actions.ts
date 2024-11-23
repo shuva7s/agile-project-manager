@@ -7,6 +7,7 @@ import User from "../database/models/user.model";
 import Project from "../database/models/project.model";
 import { revalidatePath } from "next/cache";
 import { Sprint, Task } from "../database/models/sprint.model";
+import { taskAssignmentMail } from "../emails/taskAssignmentMail";
 
 export async function checkUserIsAdminAndReturnBackLogTasks(projectId: string) {
   try {
@@ -60,10 +61,14 @@ export async function checkUserIsAdminAndReturnBackLogTasks(projectId: string) {
       (member: any) => member._id.equals(user._id) && member.role === "admin"
     );
 
+    let backlogTasks = JSON.parse(JSON.stringify(project.backlog));
+
+    backlogTasks = await backlogTasks.reverse();
+
     if (isAdmin) {
       return {
         success: true,
-        backlogTasks: JSON.parse(JSON.stringify(project.backlog)),
+        backlogTasks,
       };
     } else {
       return {
@@ -602,6 +607,103 @@ export async function getAssignedMembersForTask(
   }
 }
 
+// export async function addMembersToTask(
+//   projectId: string,
+//   taskId: string,
+//   memberIds: string[]
+// ) {
+//   try {
+//     await connectToDatabase();
+
+//     const project = await Project.findById(projectId);
+//     if (!project) {
+//       return {
+//         success: false,
+//         message: "Project not found",
+//       };
+//     }
+
+//     const task = await Task.findById(taskId);
+//     if (!task) {
+//       return {
+//         success: false,
+//         message: "Task not found",
+//       };
+//     }
+
+//     let fieldToUpdate: string | null = null;
+//     if (task.status === "des") {
+//       fieldToUpdate = "assignedDesigners";
+//     } else if (task.status === "dev") {
+//       fieldToUpdate = "assignedDevelopers";
+//     } else if (task.status === "tes") {
+//       fieldToUpdate = "assignedTesters";
+//     } else if (task.status === "dep") {
+//       fieldToUpdate = "assignedDeployers";
+//     }
+
+//     if (!fieldToUpdate) {
+//       return {
+//         success: false,
+//         message: "Invalid task status",
+//       };
+//     }
+
+//     // Add members to task field
+//     memberIds.forEach((memberId) => {
+//       if (!task[fieldToUpdate].includes(memberId)) {
+//         task[fieldToUpdate].push(memberId);
+//       }
+//     });
+
+//     // Save the task with updated assignments
+//     await task.save();
+
+//     // Update each member's project tasks
+//     for (const memberId of memberIds) {
+//       const user = await User.findById(memberId);
+//       if (!user) {
+//         return {
+//           success: false,
+//           message: `User with ID ${memberId} not found`,
+//         };
+//       }
+
+//       // Find or add the project in the user's projects array
+//       const projectEntry = user.projects.find((proj: any) =>
+//         proj._id.equals(projectId)
+//       );
+
+//       if (projectEntry) {
+//         // If the project exists, add the task to tasks array if not present
+//         if (!projectEntry.tasks.includes(taskId)) {
+//           projectEntry.tasks.push(taskId);
+//         }
+//       } else {
+//         // If the project doesn't exist, add a new entry with the task
+//         user.projects.push({
+//           _id: new Types.ObjectId(projectId),
+//           tasks: [taskId],
+//         });
+//       }
+
+//       // Save each updated user
+//       await user.save();
+//     }
+//     revalidatePath(`/project/${projectId}`);
+//     revalidatePath(`/tasks`);
+//     return {
+//       success: true,
+//       message: "Members added successfully to the task and users updated",
+//     };
+//   } catch (error: any) {
+//     return {
+//       success: false,
+//       message: error.message || "An error occurred",
+//     };
+//   }
+// }
+
 export async function addMembersToTask(
   projectId: string,
   taskId: string,
@@ -654,7 +756,8 @@ export async function addMembersToTask(
     // Save the task with updated assignments
     await task.save();
 
-    // Update each member's project tasks
+    // Collect recipient emails and update each member's project tasks
+    const recipients: string[] = [];
     for (const memberId of memberIds) {
       const user = await User.findById(memberId);
       if (!user) {
@@ -663,6 +766,9 @@ export async function addMembersToTask(
           message: `User with ID ${memberId} not found`,
         };
       }
+
+      // Add the user's email to the recipient list
+      if (user.email) recipients.push(user.email);
 
       // Find or add the project in the user's projects array
       const projectEntry = user.projects.find((proj: any) =>
@@ -685,11 +791,25 @@ export async function addMembersToTask(
       // Save each updated user
       await user.save();
     }
+
+    // Send email notifications
+    await taskAssignmentMail({
+      recipients,
+      projectName: project.name,
+      projectId,
+      taskName: task.name,
+      taskId,
+      taskDescription: task.description,
+      weightage: task.priority,
+    });
+
+    // Revalidate paths
     revalidatePath(`/project/${projectId}`);
     revalidatePath(`/tasks`);
+
     return {
       success: true,
-      message: "Members added successfully to the task and users updated",
+      message: "Members added successfully to the task and notifications sent",
     };
   } catch (error: any) {
     return {
@@ -896,10 +1016,12 @@ export async function getMyTasks() {
 
     // Filter out any null values from the taskDetails array
     const filteredTaskDetails = taskDetails.filter((task) => task !== null);
+    let tasks = JSON.parse(JSON.stringify(filteredTaskDetails));
+    tasks = await tasks.reverse();
 
     return {
       success: true,
-      tasks: JSON.parse(JSON.stringify(filteredTaskDetails)),
+      tasks
     };
   } catch (error: any) {
     console.error("Error in getMyTasks:", error);
@@ -1114,12 +1236,13 @@ export async function checkUserIsAdminAndReturnSubmittedTasks(
         currentSprint.timeSpan - currentSprint.currentTime
       );
     }
-
+    let submittedTasks = JSON.parse(JSON.stringify(currentSprint.submissions));
+    submittedTasks = await submittedTasks.reverse();
     return {
       success: true,
       isAdmin,
       remainingDays,
-      submittedTasks: JSON.parse(JSON.stringify(currentSprint.submissions)),
+      submittedTasks,
     };
   } catch (error: any) {
     console.error("Error occurred:", error.message);

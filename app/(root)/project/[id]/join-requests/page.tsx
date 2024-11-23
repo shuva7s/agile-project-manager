@@ -23,7 +23,7 @@ async function JoinReqAccessCheckAndRender({
     if (success) {
       return (
         <section className="mt-8">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {joinRequests.length > 0 ? (
               joinRequests.map((joinRequest: any) => (
                 <Card key={joinRequest.username}>
