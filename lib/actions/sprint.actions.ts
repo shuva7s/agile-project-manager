@@ -589,6 +589,8 @@ export async function addDaysToSprint(projectId: string, days: number) {
     currentSprint.timeSpan += days;
     await currentSprint.save();
 
+    revalidatePath(`/project/${projectId}`);
+
     return {
       success: true,
       title: "Sprint extended",
